@@ -16,14 +16,38 @@ def test():
 
 @test_route.route('/path', methods=['POST'])
 def find_path():
-    req_json = request.json
-    file_path = req_json.get("file_path")
+    upload_folder = os.path.join('app', 'uploads')
+
+    if 'file' not in request.files:
+        return jsonify({"response": "No se ha enviado ningun 'file' en la solicitud."})
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify({"response": "No se ha seleccionado ningún archivo."})
+
+    if not os.path.exists(upload_folder):
+        os.makedirs(upload_folder)
+
+    file_path = os.path.join(upload_folder, file.filename)
+    file.save(file_path)
+
+    new_file_path = FilePath(path=file_path)
+    db.session.add(new_file_path)
+    db.session.commit()
+
+    return jsonify({"response": "El archivo se ha almacenado en la base de datos."})
+
+@test_route.route('/download/<filename>', methods=['GET'])
+def download_file(filename):
+    upload_folder = os.path.join('app', 'uploads')
+    file_path = os.path.join(upload_folder, filename) 
 
     if os.path.isfile(file_path):
-        new_file_path = FilePath(path=file_path)
-        db.session.add(new_file_path)
-        db.session.commit()
-        return jsonify({"response": "El archivo existe y se ha almacenado en la base de datos."})
+        try:
+            return send_file(file_path, as_attachment=True)
+        except Exception as e:
+            return jsonify({"error": str(e)})
     else:
         return jsonify({"response": "El archivo no existe en el directorio."})
 
