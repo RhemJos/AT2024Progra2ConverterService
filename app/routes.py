@@ -30,6 +30,11 @@ def upload_file():
         os.makedirs(upload_folder)
 
     file_path = os.path.join(upload_folder, file.filename)
+
+    existing_file = FilePath.query.filter_by(path=file_path).first()
+    if existing_file:
+        return jsonify({"response": "El archivo ya existe en la base de datos."})
+
     file.save(file_path)
 
     new_file_path = FilePath(path=file_path)
