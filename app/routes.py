@@ -14,8 +14,8 @@ def test():
         name = req_Json["name"]
         return jsonify({"response": "Hi " + name})
 
-@test_route.route('/path', methods=['POST'])
-def find_path():
+@test_route.route('/upload-file', methods=['POST'])
+def upload_file():
     upload_folder = os.path.join('app', 'uploads')
 
     if 'file' not in request.files:
