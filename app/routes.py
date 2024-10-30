@@ -40,16 +40,19 @@ def find_path():
 
 @test_route.route('/download/<filename>', methods=['GET'])
 def download_file(filename):
-    upload_folder = os.path.join('app', 'uploads')
-    file_path = os.path.join(upload_folder, filename) 
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    upload_folder = os.path.join(current_dir, 'uploads')
+    file_path = os.path.join(upload_folder, filename)
 
     if os.path.isfile(file_path):
         try:
             return send_file(file_path, as_attachment=True)
         except Exception as e:
-            return jsonify({"error": str(e)})
+            return jsonify({"error": "Error al descargar el archivo", "details": str(e)})
     else:
-        return jsonify({"response": "El archivo no existe en el directorio."})
+        return jsonify({"error": "El archivo no existe en el directorio."})
+
+
 
 @test_route.route('/get-file', methods=['GET'])
 def get_file():
