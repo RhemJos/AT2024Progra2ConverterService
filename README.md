@@ -51,6 +51,8 @@ The main project structure is as follows:
     ├── app/
     │   ├── __init__.py
     │   ├── routes.py
+    │   ├── models.py
+    │   ├── uploads/
     │   ├── converters/
     │   │   ├── video_to_images.py
     │   │   └── ...
