@@ -45,7 +45,7 @@ This project is an application offering multiple file conversion tools based on 
 
 # Project Structure
 The main project structure is as follows:
-    ```graphql
+    ```
     File-Converter-project/
     │
     ├── app/
