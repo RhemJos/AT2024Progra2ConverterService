@@ -60,7 +60,6 @@ The main project structure is as follows:
     │   └── api/
     │       └── endpoints.py
     │
-    ├── config.py
     ├── run.py
     ├── requirements.txt
     └── README.md
