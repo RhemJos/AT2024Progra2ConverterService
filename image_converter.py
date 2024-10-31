@@ -1,33 +1,58 @@
+import string
 from PIL import Image
+from PIL.ImagePalette import random
+import random
 
 class ImageConverter:
     def __init__(self, path, extension):
         self.path = path
         self.extension = extension
 
-    def image_resize (self):
-        img = Image.open(self.path)
-        img_resized = img.resize((int(img.width/2), int(img.height/2)), resample = Image.LANCZOS, box=(70,150,500,300))
-        img_resized.show()
-        #return img_resized
-        return print('Image resized successfully')
+    def image_resize (self, path):
+        img = Image.open(path)
+        img_resized = img.resize((int(img.width/2), int(img.height/2)), box=(20,20,300,300))
+        name = self.generate_name()
+        img_resized.save('Resize/'+name+'.png')
+        file_path = 'Resize/'+name+'.png'
+        return file_path
 
-    def image_rotate (self):
-        img = Image.open(self.path)
+    def image_rotate (self, path):
+        img = Image.open(path)
         img_rotated = img.rotate(angle=60, expand=True, fillcolor="black") #center=(0,0)
-        img_rotated.show()
-        # return img_rotated
-        return print('Image rotated successfully')
+        name = self.generate_name()
+        img_rotated.save('Rotate/'+name+'.png')
+        file_path = 'Rotate/'+name+'.png'
+        return file_path
 
-    def image_crop (self):
-        img = Image.open(self.path)
-        img_cropped = img.crop(box = (20,20 ,300,300))
-        img_cropped.show()
-        # return img_cropped
-        return print('Image cropped successfully')
+    def image_grayscale (self, path):
+        img = Image.open(path)
+        img_grayscaled = img.convert("L")
+        name = self.generate_name()
+        img_grayscaled.save('Grayscale/'+name+'.png')
+        file_path = 'Grayscale/'+name+'.png'
+        return file_path
+
+    #def image_crop (self, file):
+    #    img = Image.open(file)
+    #    img_cropped = img.crop(box = (20,20 ,300,300))
+    #    return img_cropped
 
     def image_convert (self):
-        img = Image.open(self.path)
-        img.save('output.'+self.extension, self.extension)
-        img.show()
+        resized = self.image_resize(self.path)
+        rotated = self.image_rotate(resized)
+        grayscale = self.image_grayscale(rotated)
+        name = self.generate_name()
+        img_converted = Image.open(grayscale)
+        print(self.extension)
+        img_converted.convert("RGB")
+        img_converted.save('Output/'+name+'.'+self.extension, format = self.extension)
         return print('Image converted successfully')
+
+
+    @staticmethod
+    def generate_name ():
+        chars = string.ascii_letters + string.ascii_lowercase + string.ascii_uppercase
+        name = ""
+        for i in range (10):
+            name += random.choice(chars)
+        return name
