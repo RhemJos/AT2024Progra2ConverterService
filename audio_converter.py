@@ -1,27 +1,32 @@
 import subprocess
+import os
 
 class AudioConverter():
     def __init__(self,in_audio):
         self.in_audio=in_audio
 
-    def set_out_audio(self,out_format):
-        out_audio=self.in_audio.split('.')[0]+'.'+out_format
-        return out_audio
-
-    def convert(self,format='mp3',bit_rate=None,channels=None):
+    def convert(self,format='mp3',bit_rate=None,channels=None,frecuencia_muestreo=None,volumen=None):
+        out_audio = os.path.splitext(self.in_audio)[0]+'.'+format
+        # si el archivo ya existe no convertir
+        if os.path.exists(out_audio):
+            print(f'El archivo {out_audio} ya existe.')
+            return out_audio
+        # setear opciones
         options = ['-vn'] # opcion para no procesar el stream de video
         if bit_rate:
             options.append(f'-b:a {bit_rate}')
         if channels:
             options.append(f'-ac {channels}')
-        out_audio=self.set_out_audio(format)
+        if frecuencia_muestreo:
+            options.append(f'-ar {frecuencia_muestreo}')
+        if volumen:
+            options.append(f'-filter:a "volume={volumen}"')
+
         binary='C:/Users/JoannaPC/ffmpeg/bin/ffmpeg.exe'
         cmd = f'{binary} -n -i {self.in_audio} {" ".join(options)} {out_audio}'
-        # return(cmd)
         try:
-            subprocess.check_output(cmd, shell=True)
+            result=subprocess.run(cmd, shell=True,check=True,capture_output=True,text=True)
             return out_audio
-        ## buscar una manera de capturar los errores y si el archivo ya existe devolver el nombre del archivo
         except subprocess.CalledProcessError as e:
-            print(f"Command failed with exit status {e.returncode}")
-            print(f"Output: {e.output.decode()}")
+            print(f"No se pudo convertir el archivo: {e.stderr}")
+
