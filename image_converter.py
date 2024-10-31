@@ -46,7 +46,9 @@ class ImageConverter:
         print(self.extension)
         img_converted.convert("RGB")
         img_converted.save('Output/'+name+'.'+self.extension, format = self.extension)
-        return print('Image converted successfully')
+        file_path = 'Output/'+name+'.'+self.extension
+        print('Image converted successfully '+ file_path)
+        return file_path
 
 
     @staticmethod
