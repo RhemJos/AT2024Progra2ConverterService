@@ -14,6 +14,8 @@ def test():
         name = req_Json["name"]
         return jsonify({"response": "Hi " + name})
 
+
+
 @test_route.route('/upload-file', methods=['POST'])
 def upload_file():
     upload_folder = os.path.join('app', 'uploads')
@@ -42,6 +44,8 @@ def upload_file():
     db.session.commit()
 
     return jsonify({"response": "El archivo se ha almacenado en la base de datos."})
+
+
 
 @test_route.route('/download/<filename>', methods=['GET'])
 def download_file(filename):
