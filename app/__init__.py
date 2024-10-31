@@ -1,6 +1,7 @@
 from flask import Flask
 from .models import db, FilePath
 from .routes import test_route
+from .api.endpoints import api
 
 
 def create_app():
@@ -14,5 +15,6 @@ def create_app():
         db.create_all()
 
     app.register_blueprint(test_route)
+    app.register_blueprint(api, url_prefix='/api')
 
     return app
