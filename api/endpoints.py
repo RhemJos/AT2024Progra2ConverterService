@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify, send_file
 from converters.video_to_images.video_converter import VideoConverter
 from converters.image_to_image.image_converter import ImageConverter
 from converters.audio_to_audio.audio_converter import AudioConverter
+from converters.extractor.metadataextractor import MetadataExtractor
 from PIL import Image
 import mimetypes
 import io
@@ -183,3 +184,16 @@ def convert_audio():
         return jsonify({"message": "Conversión exitosa.", "converted_audio_path": '/' + converted_audio_path.replace("\\", "/")}), 200
     else:
         return jsonify({"error": "Conversión de audio fallida."}), 500
+
+
+# Meda data extractor - Microservice
+
+@api.route('/get-metadata', methods=['POST'])
+def get_metadata():
+    if 'file_path' not in request.form:
+        return jsonify({"error": "No se ha enviado ningun 'file' en la solicitud."})
+
+    file_path = request.form["file_path"]
+    meta_data_extractor = MetadataExtractor(file_path)
+    result = meta_data_extractor.extract()
+    return jsonify(result)
