@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, send_file
 import os
-from .models import db, FilePath 
+from models import db, FilePath 
 
 
 test_route = Blueprint('test_route', __name__)

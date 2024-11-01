@@ -1,7 +1,7 @@
 from flask import Flask
-from .models import db, FilePath
-from .routes import test_route
-from .api.endpoints import api
+# from models import db, FilePath
+from routes import test_route
+from api.endpoints import api
 
 
 app = Flask(__name__)

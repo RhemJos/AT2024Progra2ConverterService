@@ -1,7 +1,5 @@
-import string
 from PIL import Image
 from PIL.ImagePalette import random
-import random
 import os
 
 class ImageConverter:
@@ -37,7 +35,7 @@ class ImageConverter:
 
         base_name = os.path.splitext(os.path.basename(self.path))[0]
         edited_name = f"{base_name}_edited.{self.extension}"
-        output_path = os.path.join('app', 'outputs', 'image_converted_outputs', edited_name)
+        output_path = os.path.join('outputs', 'image_converted_outputs', edited_name)
         img.save(output_path)
 
         return output_path
