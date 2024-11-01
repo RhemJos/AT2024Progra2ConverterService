@@ -2,6 +2,8 @@ import os
 import mimetypes
 from flask import Blueprint, request, jsonify, send_file
 from ..converters.video_to_images.video_converter import VideoConverter
+from PIL import Image
+import io
 
 
 api = Blueprint('api', __name__)
@@ -91,3 +93,35 @@ def download_video(filename):
 
 # Image Converter - Microservice
 
+
+@api.route('/image-configuration', methods=['POST'])
+def image_configuration():
+
+    if 'image' not in request.files:
+        return jsonify({"error": "No se encontró un archivo image."}), 400
+
+    image_file = request.files['image']
+    resize = request.form.get('resize', type=int)
+    rotate = request.form.get('rotate', type=int)
+    grayscale = request.form.get('grayscale', type=bool)
+
+    image = Image.open(image_file)
+
+    if resize:
+        image = image.resize((resize, resize))
+
+    if rotate:
+        image = image.rotate(rotate, expand=True)
+
+    if grayscale:
+        image = image.convert("L")
+
+    output_folder = os.path.join('app', 'outputs', 'image_converted_outputs')
+    os.makedirs(output_folder, exist_ok=True) 
+
+    output_filename = f"processed_image_{image_file.filename}"
+    output_path = os.path.join(output_folder, output_filename)
+
+    image.save(output_path)
+
+    return jsonify({"message": "Image processed and saved successfully", "output_path": output_path}), 200
