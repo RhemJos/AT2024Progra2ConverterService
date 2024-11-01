@@ -26,7 +26,7 @@ class VideoConverter:
     def convert_format(self, output_format=None, output_path=None):
         base_name = os.path.basename(self.video_path)  # Obtiene el nombre base del video con la extensión E.g: .mp4
         file_name = os.path.splitext(base_name)[0]      #Obtiene el nombre del video sin la extensión
-        video_path = f'{file_name}_converted.{output_format}'   #Añadiendo nueva extension de video al nombre del video original del input
+        video_path = f'{file_name}.{output_format}'   #Añadiendo nueva extension de video al nombre del video original del input
         video_converted_folder = os.path.join('app', 'outputs', 'video_converted_output')
         os.makedirs(video_converted_folder, exist_ok=True)
 
