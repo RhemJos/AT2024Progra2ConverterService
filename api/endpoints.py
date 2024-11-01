@@ -52,7 +52,7 @@ def video_to_video():
     if format == '':
         return jsonify({"error": "No se ha seleccionado tipo de archivo a convertir."})
 
-    video_folder = os.path.join('converters', 'video_to_images', 'videos')
+    video_folder = os.path.join('outputs', 'video_to_frames_output')
     os.makedirs(video_folder, exist_ok=True)
     video_path = os.path.join(video_folder, file.filename)
 
@@ -66,7 +66,7 @@ def video_to_video():
     filename = os.path.splitext(os.path.basename(video_path))[0]
     video_path_converted = os.path.join('outputs', 'video_converted_output', filename + '.' + format)
 
-    return jsonify({"message": "Video procesado con éxito.", "video_path": video_path_converted})
+    return jsonify({"message": "Video procesado con éxito.", "video_path": '/' + video_path_converted.replace("\\", "/")})
 
 
 
