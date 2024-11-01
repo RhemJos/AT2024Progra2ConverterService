@@ -7,7 +7,7 @@ class AudioConverter():
 
     def convert(self, output_format='mp3', **kwargs):
         output_file = os.path.splitext(os.path.basename(self.audio_path))[0] +'.' + output_format
-        output_path = os.path.join(os.path.dirname(os.path.dirname(os.getcwd())),'outputs','audio_converted_outputs',output_file)
+        output_path = os.path.join('app','outputs','audio_converted_outputs',output_file)
         # si el archivo ya existe no convertir
         if os.path.exists(output_path):
             print(f'El archivo {output_path} ya existe.')
