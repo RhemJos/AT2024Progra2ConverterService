@@ -7,8 +7,9 @@ api = Blueprint('api', __name__)
 
 # Video Converter - Microservice
 
-@api.route('/upload-video', methods=['POST'])
-def upload_video():
+
+@api.route('/video-to-images', methods=['POST'])
+def video_to_images():
     if 'file' not in request.files:
         return jsonify({"error": "No se ha enviado ningun 'file' en la solicitud."})
 
@@ -24,11 +25,37 @@ def upload_video():
 
     converter = VideoConverter(video_path)
     converter.to_frames()
-    #converter.convert_format('mkv')
 
     os.remove(video_path)
 
     return jsonify({"message": "Video procesado con éxito."})
+
+
+
+@api.route('/video-to-video', methods=['POST'])
+def video_to_video():
+    if 'file' not in request.files:
+        return jsonify({"error": "No se ha enviado ningun 'file' en la solicitud."})
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No se ha seleccionado ningún archivo."})
+    
+    format = request.form.get('format')
+
+    video_folder = os.path.join('app', 'converters', 'video_to_images', 'videos')
+    os.makedirs(video_folder, exist_ok=True)
+    video_path = os.path.join(video_folder, file.filename)
+
+    file.save(video_path)
+
+    converter = VideoConverter(video_path)
+    converter.convert_format(format)
+
+    os.remove(video_path)
+
+    return jsonify({"message": "Video procesado con éxito."})
+
 
 
 @api.route('/download-frames/<filename>', methods=['GET'])
