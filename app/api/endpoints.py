@@ -24,6 +24,7 @@ def upload_video():
 
     converter = VideoConverter(video_path)
     converter.to_frames()
+    #converter.convert_format('mkv')
 
     os.remove(video_path)
 
