@@ -124,4 +124,19 @@ def image_configuration():
 
     image.save(output_path)
 
-    return jsonify({"message": "Image processed and saved successfully", "output_path": output_path}), 200
+    return jsonify({"message": "Imagen procesada y guardada con éxito.", "output_path": output_path}), 200
+
+
+
+@api.route('/download-image/<filename>', methods=['GET'])
+def download_image(filename):
+    image_folder = os.path.join('app', 'outputs', 'image_converted_outputs')
+    image_path = os.path.join(image_folder, filename)
+
+    if os.path.exists(image_path):
+
+        return jsonify({
+            "image_path": image_path,
+        })
+
+    return jsonify({"error": "File not found"}), 404
