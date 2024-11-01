@@ -1,11 +1,10 @@
 import os
-import mimetypes
 from flask import Blueprint, request, jsonify, send_file
 from ..converters.video_to_images.video_converter import VideoConverter
 from ..converters.image_to_image.image_converter import ImageConverter
 from ..converters.audio_to_audio.audio_converter import AudioConverter
-from werkzeug.utils import secure_filename
 from PIL import Image
+import mimetypes
 import io
 
 
@@ -96,38 +95,33 @@ def download_video(filename):
 
 # Image Converter - Microservice
 
-
 @api.route('/image-configuration', methods=['POST'])
 def image_configuration():
-
     if 'image' not in request.files:
         return jsonify({"error": "No se encontró un archivo image."}), 400
 
     image_file = request.files['image']
-    resize = request.form.get('resize', type=int)
-    rotate = request.form.get('rotate', type=int)
+    valid_extensions = ['jpg', 'jpeg', 'png', 'gif']
+    extension = image_file.filename.split('.')[-1].lower()
+
+    if extension not in valid_extensions:
+        return jsonify({"error": "Formato de imagen no soportado."}), 400
+
+    image_path = os.path.join('app', 'outputs', 'image_converted_outputs', image_file.filename)
+    image_file.save(image_path)
+
+    converter = ImageConverter(image_path, extension)
+
+    # Obtener valores de resize, rotate y grayscale desde el formulario
+    resize_width = request.form.get('resize_width', type=int)
+    resize_height = request.form.get('resize_height', type=int)
+    rotate_angle = request.form.get('rotate', type=int)
     grayscale = request.form.get('grayscale', type=bool)
 
-    image = Image.open(image_file)
-
-    if resize:
-        image = image.resize((resize, resize))
-
-    if rotate:
-        image = image.rotate(rotate, expand=True)
-
-    if grayscale:
-        image = image.convert("L")
-
-    output_folder = os.path.join('app', 'outputs', 'image_converted_outputs')
-    os.makedirs(output_folder, exist_ok=True) 
-
-    output_filename = f"processed_image_{image_file.filename}"
-    output_path = os.path.join(output_folder, output_filename)
-
-    image.save(output_path)
+    output_path = converter.image_convert(resize=(resize_width, resize_height), rotate=rotate_angle, grayscale=grayscale)
 
     return jsonify({"message": "Imagen procesada y guardada con éxito.", "output_path": output_path}), 200
+
 
 
 
