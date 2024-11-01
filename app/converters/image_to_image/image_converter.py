@@ -40,8 +40,8 @@ class ImageConverter:
         img_converted = Image.open(grayscale)
         print(self.extension)
         img_converted.convert("RGB")
-        img_converted.save('../../../outputs/image_converted_outputs/'+name+'.'+self.extension, format = self.extension)
-        output_path = '../../../outputs/image_converted_outputs/'+name+'.'+self.extension
+        img_converted.save('../../outputs/image_converted_outputs/'+name+'.'+self.extension, format = self.extension)
+        output_path = '../../outputs/image_converted_outputs/'+name+'.'+self.extension
         print('Image converted successfully '+ output_path)
         return output_path
 
