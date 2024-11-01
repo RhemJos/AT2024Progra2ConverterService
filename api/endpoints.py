@@ -1,8 +1,8 @@
 import os
 from flask import Blueprint, request, jsonify, send_file
-from ..converters.video_to_images.video_converter import VideoConverter
-from ..converters.image_to_image.image_converter import ImageConverter
-from ..converters.audio_to_audio.audio_converter import AudioConverter
+from converters.video_to_images.video_converter import VideoConverter
+from converters.image_to_image.image_converter import ImageConverter
+from converters.audio_to_audio.audio_converter import AudioConverter
 from PIL import Image
 import mimetypes
 import io
@@ -21,7 +21,7 @@ def video_to_images():
     if file.filename == '':
         return jsonify({"error": "No se ha seleccionado ningún archivo."})
 
-    video_folder = os.path.join('app', 'converters', 'video_to_images', 'videos')
+    video_folder = os.path.join('converters', 'video_to_images', 'videos')
     os.makedirs(video_folder, exist_ok=True)
     video_path = os.path.join(video_folder, file.filename)
 
@@ -49,7 +49,7 @@ def video_to_video():
     if format == '':
         return jsonify({"error": "No se ha seleccionado tipo de archivo a convertir."})
 
-    video_folder = os.path.join('app', 'converters', 'video_to_images', 'videos')
+    video_folder = os.path.join('converters', 'video_to_images', 'videos')
     os.makedirs(video_folder, exist_ok=True)
     video_path = os.path.join(video_folder, file.filename)
 
@@ -61,7 +61,7 @@ def video_to_video():
     os.remove(video_path)
 
     filename = os.path.splitext(os.path.basename(video_path))[0]
-    video_path_converted = os.path.join('app', 'outputs', 'video_converted_output', filename + '.' + format)
+    video_path_converted = os.path.join('outputs', 'video_converted_output', filename + '.' + format)
 
     return jsonify({"message": "Video procesado con éxito.", "video_path": video_path_converted})
 
@@ -69,7 +69,7 @@ def video_to_video():
 
 @api.route('/download-frames/<filename>', methods=['GET'])
 def download_frames(filename):
-    frames_folder = os.path.join('app', 'outputs', 'video_to_frames_output', filename)
+    frames_folder = os.path.join('outputs', 'video_to_frames_output', filename)
     
     if os.path.exists(frames_folder):
         return jsonify({"frames_folder_path": frames_folder})
@@ -79,7 +79,7 @@ def download_frames(filename):
 
 @api.route('/download-video/<filename>', methods=['GET'])
 def download_video(filename):
-    video_folder = os.path.join('app', 'outputs', 'video_converted_output')
+    video_folder = os.path.join('outputs', 'video_converted_output')
     video_path = os.path.join(video_folder, filename)
 
     if os.path.exists(video_path):
@@ -106,8 +106,11 @@ def image_configuration():
 
     if extension not in valid_extensions:
         return jsonify({"error": "Formato de imagen no soportado."}), 400
-
-    image_path = os.path.join('app', 'outputs', 'image_converted_outputs', image_file.filename)
+    
+    output_dir = os.path.join('outputs', 'image_converted_outputs')
+    os.makedirs(output_dir, exist_ok=True)
+    
+    image_path = os.path.join('outputs', 'image_converted_outputs', image_file.filename)
     image_file.save(image_path)
 
     converter = ImageConverter(image_path, extension)
@@ -120,14 +123,14 @@ def image_configuration():
 
     output_path = converter.image_convert(resize=(resize_width, resize_height), rotate=rotate_angle, grayscale=grayscale)
 
-    return jsonify({"message": "Imagen procesada y guardada con éxito.", "output_path": output_path}), 200
+    return jsonify({"message": "Imagen procesada y guardada con éxito.", "output_path": "/" + output_path.replace("\\", "/")}), 200
 
 
 
 
 @api.route('/download-image/<filename>', methods=['GET'])
 def download_image(filename):
-    image_folder = os.path.join('app', 'outputs', 'image_converted_outputs')
+    image_folder = os.path.join('outputs', 'image_converted_outputs')
     image_path = os.path.join(image_folder, filename)
 
     if os.path.exists(image_path):
@@ -154,7 +157,7 @@ def convert_audio():
     sample_rate = request.form.get('sample_rate')
     volume = request.form.get('volume')
 
-    audio_path = os.path.join('app', 'outputs', 'audio_converted_outputs', audio_file.filename)
+    audio_path = os.path.join('outputs', 'audio_converted_outputs', audio_file.filename)
     audio_file.save(audio_path)
 
     converter = AudioConverter(audio_path)
