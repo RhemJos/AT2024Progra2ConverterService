@@ -1,7 +1,7 @@
 import os
 from flask import Blueprint, request, jsonify, send_file
 from ..converters.video_to_images.video_converter import VideoConverter
-
+from ..converters.extractor.metadataextractor import MetadataExtractor
 
 api = Blueprint('api', __name__)
 
@@ -37,3 +37,15 @@ def download_frames(filename):
         return send_file(zip_path, as_attachment=True)
 
     return jsonify({"error": "File not found"}), 404
+
+# Extractor microservice
+
+@api.route('/extractor/get-metadata', methods=['POST'])
+def get_metadata():
+    if 'file_path' not in request.form:
+        return jsonify({"error": "No se ha enviado ningun 'file' en la solicitud."})
+    
+    file_path = request.form["file_path"]
+    meta_data_extractor = MetadataExtractor(file_path)
+    result = meta_data_extractor.extract()
+    return jsonify(result)
