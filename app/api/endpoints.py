@@ -42,6 +42,8 @@ def video_to_video():
         return jsonify({"error": "No se ha seleccionado ningún archivo."})
     
     format = request.form.get('format')
+    if format == '':
+        return jsonify({"error": "No se ha seleccionado tipo de archivo a convertir."})
 
     video_folder = os.path.join('app', 'converters', 'video_to_images', 'videos')
     os.makedirs(video_folder, exist_ok=True)
@@ -54,7 +56,10 @@ def video_to_video():
 
     os.remove(video_path)
 
-    return jsonify({"message": "Video procesado con éxito."})
+    filename = os.path.splitext(os.path.basename(video_path))[0]
+    video_path_converted = os.path.join('app', 'outputs', 'video_converted_output', filename + '.' + format)
+
+    return jsonify({"message": "Video procesado con éxito.", "video_path": video_path_converted})
 
 
 
@@ -66,8 +71,6 @@ def download_frames(filename):
         return jsonify({"frames_folder_path": frames_folder})
     
     return jsonify({"error": "Folder not found"}), 404
-
-
 
 
 @api.route('/download-video/<filename>', methods=['GET'])
