@@ -130,7 +130,6 @@ def image_configuration():
 
 
 
-
 @api.route('/download-image/<filename>', methods=['GET'])
 def download_image(filename):
     image_folder = os.path.join('outputs', 'image_converted_outputs')
@@ -160,6 +159,9 @@ def convert_audio():
     sample_rate = request.form.get('sample_rate')
     volume = request.form.get('volume')
 
+    audio_folder = os.path.join('outputs', 'audio_converted_outputs')
+    os.makedirs(audio_folder, exist_ok=True)
+
     audio_path = os.path.join('outputs', 'audio_converted_outputs', audio_file.filename)
     audio_file.save(audio_path)
 
@@ -178,6 +180,6 @@ def convert_audio():
     converted_audio_path = converter.convert(output_format, **kwargs)
 
     if converted_audio_path:
-        return jsonify({"message": "Conversión exitosa.", "converted_audio_path": converted_audio_path.replace("\\", "/")}), 200
+        return jsonify({"message": "Conversión exitosa.", "converted_audio_path": '/' + converted_audio_path.replace("\\", "/")}), 200
     else:
         return jsonify({"error": "Conversión de audio fallida."}), 500
