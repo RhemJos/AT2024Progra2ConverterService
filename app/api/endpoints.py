@@ -1,4 +1,5 @@
 import os
+import mimetypes
 from flask import Blueprint, request, jsonify, send_file
 from ..converters.video_to_images.video_converter import VideoConverter
 
@@ -6,7 +7,6 @@ from ..converters.video_to_images.video_converter import VideoConverter
 api = Blueprint('api', __name__)
 
 # Video Converter - Microservice
-
 
 @api.route('/video-to-images', methods=['POST'])
 def video_to_images():
@@ -60,8 +60,31 @@ def video_to_video():
 
 @api.route('/download-frames/<filename>', methods=['GET'])
 def download_frames(filename):
-    zip_path = os.path.join('app', 'converters', 'video_to_images', 'outputs', f"{filename}_frames.zip")
-    if os.path.exists(zip_path):
-        return send_file(zip_path, as_attachment=True)
+    frames_folder = os.path.join('app', 'outputs', 'video_to_frames_output', filename)
+    
+    if os.path.exists(frames_folder):
+        return jsonify({"frames_folder_path": frames_folder})
+    
+    return jsonify({"error": "Folder not found"}), 404
+
+
+
+
+@api.route('/download-video/<filename>', methods=['GET'])
+def download_video(filename):
+    video_folder = os.path.join('app', 'outputs', 'video_converted_output')
+    video_path = os.path.join(video_folder, filename)
+
+    if os.path.exists(video_path):
+        mime_type, _ = mimetypes.guess_type(video_path)
+
+        return jsonify({
+            "video_path": video_path,
+            "mime_type": mime_type or "unknown"
+        })
 
     return jsonify({"error": "File not found"}), 404
+
+
+# Image Converter - Microservice
+

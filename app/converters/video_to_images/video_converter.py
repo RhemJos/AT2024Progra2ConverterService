@@ -5,11 +5,11 @@ class VideoConverter:
     def __init__(self, video_path):
         self.video_path = video_path
 
-
     def to_frames(self, output_path=None, fps=1):
-        frames_folder = os.path.join('app', 'outputs', 'video_to_frames_output')
+        filename = os.path.splitext(os.path.basename(self.video_path))[0]
+        frames_folder = os.path.join('app', 'outputs', 'video_to_frames_output', filename)
         os.makedirs(frames_folder, exist_ok=True)
-        
+
         if output_path is None:
             output_path = os.path.join(frames_folder, 'frame_%d.jpg')
         
@@ -20,6 +20,7 @@ class VideoConverter:
             .output(output_path)
             .run(overwrite_output=True)
         )
+
 
 
     def convert_format(self, output_format=None, output_path=None):
