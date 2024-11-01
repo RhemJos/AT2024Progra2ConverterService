@@ -190,10 +190,19 @@ def convert_audio():
 
 @api.route('/get-metadata', methods=['POST'])
 def get_metadata():
-    if 'file_path' not in request.form:
-        return jsonify({"error": "No se ha enviado ningun 'file' en la solicitud."})
+    if 'file' not in request.files:
+        return jsonify({"error": "No se ha enviado ningun 'file' en la solicitud."}), 400
 
-    file_path = request.form["file_path"]
+    file = request.files['file']
+    output_dir = os.path.join('outputs', 'metadata_outputs')
+    os.makedirs(output_dir, exist_ok=True)
+
+    file_path = os.path.join(output_dir, file.filename)
+    file.save(file_path)
+
     meta_data_extractor = MetadataExtractor(file_path)
     result = meta_data_extractor.extract()
+
+    os.remove(file_path)
+
     return jsonify(result)
