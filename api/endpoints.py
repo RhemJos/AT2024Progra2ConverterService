@@ -21,7 +21,7 @@ def video_to_images():
     if file.filename == '':
         return jsonify({"error": "No se ha seleccionado ningún archivo."})
 
-    video_folder = os.path.join('converters', 'video_to_images', 'videos')
+    video_folder = os.path.join('outputs', 'video_to_frames_output')
     os.makedirs(video_folder, exist_ok=True)
     video_path = os.path.join(video_folder, file.filename)
 
@@ -32,7 +32,10 @@ def video_to_images():
 
     os.remove(video_path)
 
-    return jsonify({"message": "Video procesado con éxito."})
+    filename = os.path.splitext(os.path.basename(video_path))[0]
+    frames_folder = os.path.join('outputs', 'video_to_frames_output', filename)
+
+    return jsonify({"message": "Video procesado con éxito.", "output_path": '/' + frames_folder.replace("\\", "/")})
 
 
 
