@@ -7,7 +7,8 @@ class VideoConverter:
 
 
     def to_frames(self, output_path=None, fps=1):
-        frames_folder = os.path.join('app', 'outputs', 'video_to_frames_output')
+        filename = os.path.splitext(os.path.basename(self.video_path))[0] #Obtiene el nombre del video
+        frames_folder = os.path.join('app', 'outputs', 'video_to_frames_output', filename)
         os.makedirs(frames_folder, exist_ok=True)
         
         if output_path is None:
