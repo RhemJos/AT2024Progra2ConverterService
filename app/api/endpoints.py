@@ -2,6 +2,9 @@ import os
 import mimetypes
 from flask import Blueprint, request, jsonify, send_file
 from ..converters.video_to_images.video_converter import VideoConverter
+from ..converters.image_to_image.image_converter import ImageConverter
+from ..converters.audio_to_audio.audio_converter import AudioConverter
+from werkzeug.utils import secure_filename
 from PIL import Image
 import io
 
@@ -140,3 +143,41 @@ def download_image(filename):
         })
 
     return jsonify({"error": "File not found"}), 404
+
+
+# Audio Converter - Microservice
+
+@api.route('/convert-audio', methods=['POST'])
+def convert_audio():
+
+    if 'audio' not in request.files:
+        return jsonify({"error": "No se proporcionó el archivo de audio."}), 400
+
+    audio_file = request.files['audio']
+    output_format = request.form.get('output_format', 'mp3')  # Formato predeterminado
+    bit_rate = request.form.get('bit_rate')
+    channels = request.form.get('channels')
+    sample_rate = request.form.get('sample_rate')
+    volume = request.form.get('volume')
+
+    audio_path = os.path.join('app', 'outputs', 'audio_converted_outputs', audio_file.filename)
+    audio_file.save(audio_path)
+
+    converter = AudioConverter(audio_path)
+
+    kwargs = {}
+    if bit_rate:
+        kwargs['bit_rate'] = bit_rate
+    if channels:
+        kwargs['channels'] = channels
+    if sample_rate:
+        kwargs['sample_rate'] = sample_rate
+    if volume:
+        kwargs['volume'] = volume
+
+    converted_audio_path = converter.convert(output_format, **kwargs)
+
+    if converted_audio_path:
+        return jsonify({"message": "Conversión exitosa.", "converted_audio_path": converted_audio_path.replace("\\", "/")}), 200
+    else:
+        return jsonify({"error": "Conversión de audio fallida."}), 500
