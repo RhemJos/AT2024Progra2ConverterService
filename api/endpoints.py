@@ -119,7 +119,6 @@ def image_configuration():
 
     converter = ImageConverter(image_path, extension)
 
-    # Obtener valores de resize, rotate y grayscale desde el formulario
     resize_width = request.form.get('resize_width', type=int)
     resize_height = request.form.get('resize_height', type=int)
     rotate_angle = request.form.get('rotate', type=int)
@@ -189,7 +188,7 @@ def convert_audio():
 # Meda data extractor - Microservice
 
 @api.route('/get-metadata', methods=['POST'])
-def get_metadata():
+def get_metadataaa():
     if 'file' not in request.files:
         return jsonify({"error": "No se ha enviado ningun 'file' en la solicitud."}), 400
 
@@ -204,5 +203,18 @@ def get_metadata():
     result = meta_data_extractor.extract()
 
     os.remove(file_path)
+
+    return jsonify(result)
+
+
+
+@api.route('/get-metadata', methods=['POST'])
+def get_metadata():
+    if 'file_path' not in request.form:
+        return jsonify({"error": "No se ha enviado ningun 'file' en la solicitud."}), 400
+
+    file_path = request.form["file_path"]
+    meta_data_extractor = MetadataExtractor(file_path)
+    result = meta_data_extractor.extract()
 
     return jsonify(result)
