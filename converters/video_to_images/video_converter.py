@@ -40,3 +40,24 @@ class VideoConverter:
             .run(overwrite_output=True)
         )
 
+    def convert_to_mov_with_fps(self, output_path=None, fps=24, codec="libx264"):
+        """
+        Convierte el video a formato MOV y ajusta los fotogramas por segundo (fps) para reducir el tamaño.
+        
+        :param codec: Códec a utilizar para la compresión del video. Por defecto es libx264.
+        """
+        base_name = os.path.basename(self.video_path)
+        file_name = os.path.splitext(base_name)[0]
+        video_converted_folder = os.path.join('outputs', 'mov_videos')
+        os.makedirs(video_converted_folder, exist_ok=True)
+
+        if output_path is None:
+            output_path = os.path.join(video_converted_folder, f"{file_name}.mov")
+
+        (
+            ffmpeg
+            .input(self.video_path)
+            .output(output_path, vcodec=codec, r=fps)  # vcodec define el codec de video, r establece el FPS
+            .run(overwrite_output=True)
+        )
+        print(f"Video convertido a MOV con {fps} fps en la ruta: {output_path}")
