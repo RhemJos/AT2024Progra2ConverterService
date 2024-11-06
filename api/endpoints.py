@@ -1,7 +1,7 @@
 import os
 from flask import Blueprint, request, jsonify, send_file
 from converters.video_to_images.video_converter import VideoConverter
-from converters.image_to_image.image_converter import ImageConverter
+from converters.image_to_image.image_converter import ImageConverter, FILTERS
 from converters.audio_to_audio.audio_converter import AudioConverter
 from converters.extractor.metadataextractor import MetadataExtractor
 from PIL import Image
@@ -122,10 +122,15 @@ def image_configuration():
     # Obtener valores de resize, rotate y grayscale desde el formulario
     resize_width = request.form.get('resize_width', type=int)
     resize_height = request.form.get('resize_height', type=int)
+    resize = (resize_width, resize_height) if resize_width or resize_height else None
     rotate_angle = request.form.get('rotate', type=int)
-    grayscale = request.form.get('grayscale', type=bool)
+    grayscale = True if 'GRAYSCALE' in request.form else False
+    filters = []
+    for filter in FILTERS:
+        if filter in request.form:
+            filters.append(filter)
 
-    output_path = converter.image_convert(resize=(resize_width, resize_height), rotate=rotate_angle, grayscale=grayscale)
+    output_path = converter.convert(resize=resize, angle=rotate_angle, grayscale=grayscale, filters=filters)
 
     return jsonify({"message": "Imagen procesada y guardada con éxito.", "output_path": "/" + output_path.replace("\\", "/")}), 200
 
