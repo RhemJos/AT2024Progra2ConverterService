@@ -70,6 +70,42 @@ def video_to_video():
     return jsonify({"message": "Video procesado con éxito.", "video_path": '/' + video_path_converted.replace("\\", "/")})
 
 
+@api.route('/video-to-mov-format', methods=['POST'])
+def video_to_mov_format():
+    if 'file' not in request.files:
+        return jsonify({"error": "No se ha enviado ningun 'file' en la solicitud."})
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No se ha seleccionado ningún archivo."})
+    
+    fps = request.form.get('fps')
+    if not fps:
+        return jsonify({"error": "No se han ingresado los fotogramas por segundo para reducir el tamaño."})
+
+    try:
+        fps = int(fps)
+    except ValueError:
+        return jsonify({"error": "El valor de los fotogramas por segundo debe ser un número entero."})
+
+    video_folder = os.path.join('outputs', 'mov_videos')
+    os.makedirs(video_folder, exist_ok=True)
+    video_path = os.path.join(video_folder, file.filename)
+
+    file.save(video_path)
+
+    converter = VideoConverter(video_path)
+    converter.convert_to_mov_with_fps(fps=fps)
+
+    # os.remove(video_path)
+
+    filename = os.path.splitext(os.path.basename(video_path))[0]
+    video_path_converted = os.path.join('outputs', 'video_converted_output', filename + '.mov')
+
+    return jsonify({"message": "Video procesado con éxito.", "video_path": '/' + video_path_converted.replace("\\", "/")})
+
+
+
 
 @api.route('/download-frames/<filename>', methods=['GET'])
 def download_frames(filename):
