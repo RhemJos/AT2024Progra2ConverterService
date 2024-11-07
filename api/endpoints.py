@@ -40,67 +40,73 @@ def video_to_images():
 
 
 
-@api.route('/video-to-video', methods=['POST'])
-def video_to_video():
+# @api.route('/video-to-video', methods=['POST'])
+# def video_to_video():
+#     if 'file' not in request.files:
+#         return jsonify({"error": "No se ha enviado ningun 'file' en la solicitud."})
+
+#     file = request.files['file']
+#     if file.filename == '':
+#         return jsonify({"error": "No se ha seleccionado ningún archivo."})
+    
+#     format = request.form.get('format')
+#     if format == '':
+#         return jsonify({"error": "No se ha seleccionado tipo de archivo a convertir."})
+
+#     video_folder = os.path.join('outputs', 'video_to_frames_output')
+#     os.makedirs(video_folder, exist_ok=True)
+#     video_path = os.path.join(video_folder, file.filename)
+
+#     file.save(video_path)
+
+#     converter = VideoConverter(video_path)
+#     converter.convert_format(format)
+
+#     os.remove(video_path)
+
+#     filename = os.path.splitext(os.path.basename(video_path))[0]
+#     video_path_converted = os.path.join('outputs', 'video_converted_output', filename + '.' + format)
+
+#     return jsonify({"message": "Video procesado con éxito.", "video_path": '/' + video_path_converted.replace("\\", "/")})
+
+
+@api.route('/video-convert', methods=['POST'])
+def video_convert():
     if 'file' not in request.files:
         return jsonify({"error": "No se ha enviado ningun 'file' en la solicitud."})
 
     file = request.files['file']
     if file.filename == '':
         return jsonify({"error": "No se ha seleccionado ningún archivo."})
-    
-    format = request.form.get('format')
-    if format == '':
-        return jsonify({"error": "No se ha seleccionado tipo de archivo a convertir."})
 
-    video_folder = os.path.join('outputs', 'video_to_frames_output')
-    os.makedirs(video_folder, exist_ok=True)
-    video_path = os.path.join(video_folder, file.filename)
-
-    file.save(video_path)
-
-    converter = VideoConverter(video_path)
-    converter.convert_format(format)
-
-    os.remove(video_path)
-
-    filename = os.path.splitext(os.path.basename(video_path))[0]
-    video_path_converted = os.path.join('outputs', 'video_converted_output', filename + '.' + format)
-
-    return jsonify({"message": "Video procesado con éxito.", "video_path": '/' + video_path_converted.replace("\\", "/")})
-
-
-@api.route('/video-to-mov-format', methods=['POST'])
-def video_to_mov_format():
-    if 'file' not in request.files:
-        return jsonify({"error": "No se ha enviado ningun 'file' en la solicitud."})
-
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({"error": "No se ha seleccionado ningún archivo."})
-    
     fps = request.form.get('fps')
-    if not fps:
-        return jsonify({"error": "No se han ingresado los fotogramas por segundo para reducir el tamaño."})
+    output_format = request.form.get('format')
+    vcodec = request.form.get('vcodec')
+    acodec = request.form.get('acodec')
+    audio_channels = request.form.get('audio_channels')
 
-    try:
-        fps = int(fps)
-    except ValueError:
-        return jsonify({"error": "El valor de los fotogramas por segundo debe ser un número entero."})
+    if not output_format:
+        return jsonify({"error": "No se ha especificado el formato de salida."})
 
-    video_folder = os.path.join('outputs', 'mov_videos')
+    fps = int(fps) if fps else None
+    audio_channels = int(audio_channels) if audio_channels else None
+
+    video_folder = os.path.join('outputs', 'video_converted_output')
     os.makedirs(video_folder, exist_ok=True)
     video_path = os.path.join(video_folder, file.filename)
-
     file.save(video_path)
 
     converter = VideoConverter(video_path)
-    converter.convert_to_mov_with_fps(fps=fps)
-
-    # os.remove(video_path)
+    converter.convert_to_format(
+        output_format=output_format,
+        fps=fps,
+        video_codec=vcodec,
+        audio_codec=acodec,
+        audio_channels=audio_channels
+    )
 
     filename = os.path.splitext(os.path.basename(video_path))[0]
-    video_path_converted = os.path.join('outputs', 'video_converted_output', filename + '.mov')
+    video_path_converted = os.path.join('outputs', 'video_converted_output', f"{filename}.{output_format}")
 
     return jsonify({"message": "Video procesado con éxito.", "video_path": '/' + video_path_converted.replace("\\", "/")})
 
