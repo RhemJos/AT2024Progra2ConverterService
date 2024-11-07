@@ -78,6 +78,14 @@ def video_convert():
     file = request.files['file']
     if file.filename == '':
         return jsonify({"error": "No se ha seleccionado ningún archivo."})
+    
+    
+    OPTIONS = {
+        "format": ["mp4", "mov", "avi", "mkv", "flv", "webm", "ogg", "wmv"],
+        "vcodec": ["libx264", "libx265", "mpeg4", "vp8", "vp9", "prores", "huffyuv", "hevc_nvenc"],
+        "acodec": ["aac", "mp3", "opus", "ac3", "pcm_s16le", "vorbis"],
+        "audio_channels": [1, 2, 4, 6, 8]
+    }
 
     fps = request.form.get('fps')
     output_format = request.form.get('format')
@@ -85,11 +93,35 @@ def video_convert():
     acodec = request.form.get('acodec')
     audio_channels = request.form.get('audio_channels')
 
-    if not output_format:
-        return jsonify({"error": "No se ha especificado el formato de salida."})
+    # fps = int(fps) if fps else None
 
-    fps = int(fps) if fps else None
-    audio_channels = int(audio_channels) if audio_channels else None
+    if not output_format:
+        return jsonify({"error": "No se ha especificado formato de salida."})
+    
+    if output_format not in OPTIONS["format"]:
+        return jsonify({"error": f"Formato de salida '{output_format}' no es válido. Opciones válidas: {OPTIONS['format']}"}), 400
+
+    if vcodec and vcodec not in OPTIONS["vcodec"]:
+        return jsonify({"error": f"Códec de video '{vcodec}' no es válido. Opciones válidas: {OPTIONS['vcodec']}"}), 400
+
+    if acodec and acodec not in OPTIONS["acodec"]:
+        return jsonify({"error": f"Códec de audio '{acodec}' no es válido. Opciones válidas: {OPTIONS['acodec']}"}), 400
+    
+    if fps:
+        try:
+            fps = int(fps)
+        except ValueError:
+            return jsonify({"error": "El número de frames por segundo debe ser un número entero."}), 400
+
+    if audio_channels:
+        try:
+            audio_channels = int(audio_channels)
+        except ValueError:
+            return jsonify({"error": "El número de canales de audio debe ser un número entero."}), 400
+
+        if audio_channels not in OPTIONS["audio_channels"]:
+            return jsonify({"error": f"Canales de audio '{audio_channels}' no es válido. Opciones válidas: {OPTIONS['audio_channels']}"}), 400
+
 
     video_folder = os.path.join('outputs', 'video_converted_output')
     os.makedirs(video_folder, exist_ok=True)
@@ -168,6 +200,8 @@ def image_configuration():
 
     output_path = converter.image_convert(resize=(resize_width, resize_height), rotate=rotate_angle, grayscale=grayscale)
 
+    os.remove(image_path)
+
     return jsonify({"message": "Imagen procesada y guardada con éxito.", "output_path": "/" + output_path.replace("\\", "/")}), 200
 
 
@@ -220,6 +254,8 @@ def convert_audio():
         kwargs['volume'] = volume
 
     converted_audio_path = converter.convert(output_format, **kwargs)
+
+    os.remove(audio_path)
 
     if converted_audio_path:
         return jsonify({"message": "Conversión exitosa.", "converted_audio_path": '/' + converted_audio_path.replace("\\", "/")}), 200
