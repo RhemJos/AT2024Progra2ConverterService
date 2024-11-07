@@ -13,6 +13,7 @@ api = Blueprint('api', __name__)
 
 # Video Converter - Microservice
 
+
 @api.route('/video-to-images', methods=['POST'])
 def video_to_images():
     if 'file' not in request.files:
@@ -34,10 +35,22 @@ def video_to_images():
     os.remove(video_path)
 
     filename = os.path.splitext(os.path.basename(video_path))[0]
-    frames_folder = os.path.join('outputs', 'video_to_frames_output', filename)
+    frames_folder = os.path.join('outputs', 'video_to_frames_output', filename).replace("\\", "/")
 
-    return jsonify({"message": "Video procesado con éxito.", "output_path": '/' + frames_folder.replace("\\", "/")})
+    # Generando URLs
+    file_names = os.listdir(frames_folder)
+    file_urls = []
+    for file_name in file_names:
+        file_path = os.path.join(frames_folder, file_name)
+        if os.path.isfile(file_path):
+            file_url = request.host_url + '/api/download-frame/' + filename + '/' + file_name
+            file_urls.append(file_url)
 
+    return jsonify({
+        "message": "Video procesado con éxito.",
+        "output_path": '/' + frames_folder,
+        "download_URLs": file_urls
+    })
 
 
 @api.route('/video-to-video', methods=['POST'])
@@ -56,7 +69,7 @@ def video_to_video():
     video_folder = os.path.join('outputs', 'video_to_frames_output')
     os.makedirs(video_folder, exist_ok=True)
     video_path = os.path.join(video_folder, file.filename)
-
+    print(video_path)
     file.save(video_path)
 
     converter = VideoConverter(video_path)
@@ -67,9 +80,21 @@ def video_to_video():
     filename = os.path.splitext(os.path.basename(video_path))[0]
     video_path_converted = os.path.join('outputs', 'video_converted_output', filename + '.' + format)
 
-    return jsonify({"message": "Video procesado con éxito.", "video_path": '/' + video_path_converted.replace("\\", "/")})
+    download_url = request.host_url + '/api/download-video/' + filename + '.' + format
 
+    return jsonify({
+        "message": "Video procesado con éxito.",
+        "video_path": '/' + video_path_converted.replace("\\", "/"),
+        "download_url": download_url  #.replace("//", "/")
+    }), 200
 
+@api.route('/download-frame/<foldername>/<filename>', methods=['GET'])
+def download_frame(foldername, filename):
+    folder = os.path.join('outputs', 'video_to_frames_output', foldername)
+    frame_path = os.path.join(folder, filename)
+    if os.path.exists(frame_path):
+        return send_file(frame_path, as_attachment=True, download_name=f"{foldername}_{filename}")
+    return jsonify({"error": "File not found"}), 404
 
 @api.route('/download-frames/<filename>', methods=['GET'])
 def download_frames(filename):
@@ -87,12 +112,12 @@ def download_video(filename):
     video_path = os.path.join(video_folder, filename)
 
     if os.path.exists(video_path):
-        mime_type, _ = mimetypes.guess_type(video_path)
-
-        return jsonify({
-            "video_path": video_path,
-            "mime_type": mime_type or "unknown"
-        })
+        # mime_type, _ = mimetypes.guess_type(video_path)
+        return send_file(video_path, as_attachment=True, download_name=filename)
+        # return jsonify({
+        #     "video_path": video_path,
+        #     "mime_type": mime_type or "unknown"
+        # })
 
     return jsonify({"error": "File not found"}), 404
 
@@ -125,10 +150,15 @@ def image_configuration():
     rotate_angle = request.form.get('rotate', type=int)
     grayscale = request.form.get('grayscale', type=bool)
 
-    output_path = converter.image_convert(resize=(resize_width, resize_height), rotate=rotate_angle, grayscale=grayscale)
+    output_path = converter.image_convert(resize=(resize_width, resize_height),
+                                          rotate=rotate_angle, grayscale=grayscale)
 
-    return jsonify({"message": "Imagen procesada y guardada con éxito.", "output_path": "/" + output_path.replace("\\", "/")}), 200
-
+    # download_url = f"/download-image/{os.path.basename(output_path)}"
+    download_url = request.host_url + '/api/download-image/' + os.path.basename(output_path)
+    return jsonify({
+        "message": "Imagen procesada y guardada con éxito.",
+        # "output_path": "/" + output_path.replace("\\", "/"),
+        "download_url": download_url}), 200
 
 
 @api.route('/download-image/<filename>', methods=['GET'])
@@ -137,10 +167,10 @@ def download_image(filename):
     image_path = os.path.join(image_folder, filename)
 
     if os.path.exists(image_path):
-
-        return jsonify({
-            "image_path": image_path,
-        })
+        # return jsonify({
+        #     "image_path": image_path,
+        # })
+        return send_file(image_path, as_attachment=True, download_name=filename)
 
     return jsonify({"error": "File not found"}), 404
 
@@ -181,7 +211,9 @@ def convert_audio():
     converted_audio_path = converter.convert(output_format, **kwargs)
 
     if converted_audio_path:
-        return jsonify({"message": "Conversión exitosa.", "converted_audio_path": '/' + converted_audio_path.replace("\\", "/")}), 200
+        return jsonify({"message": "Conversión exitosa.",
+                        "converted_audio_path": '/' + converted_audio_path.replace("\\", "/")
+                        }), 200
     else:
         return jsonify({"error": "Conversión de audio fallida."}), 500
 
