@@ -22,6 +22,8 @@ class AudioConverter():
             options['ar']= kwargs['sample_rate']
         if 'volume' in kwargs:
             options['af']= f"volume={kwargs['volume']}"
+        if 'language_channel' in kwargs:
+            options['map'] = f'0:a:{kwargs["language_channel"]}'
 
         try:
             stdout,stderr=(
@@ -30,7 +32,7 @@ class AudioConverter():
                 .output(output_path,
                         **options
                         )
-                # .run(overwrite_output=True)
+                #.run(overwrite_output=True)
                 .run(capture_stdout=True,capture_stderr=True)
             )
         except ffmpeg.Error as e:
