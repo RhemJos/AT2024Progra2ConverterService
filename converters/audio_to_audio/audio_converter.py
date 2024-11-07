@@ -24,7 +24,17 @@ class AudioConverter():
             options['af']= f"volume={kwargs['volume']}"
         if 'language_channel' in kwargs:
             options['map'] = f'0:a:{kwargs["language_channel"]}'
-
+        if 'speed' in kwargs:
+            speed = float(kwargs['speed'])
+            # El filtro 'atempo' de FFmpeg permite valores entre 0.5 y 2.0 para la velocidad
+            if 0.5 <= speed <= 2.0:
+                if 'af' in options:
+                    options['af'] += f",atempo={speed}"
+                else:
+                    options['af'] = f"atempo={speed}"
+            else:
+                print("La velocidad debe estar entre 0.5x y 2.0x")
+                return None
         try:
             stdout,stderr=(
                 ffmpeg

@@ -160,6 +160,7 @@ def convert_audio():
     sample_rate = request.form.get('sample_rate')
     volume = request.form.get('volume')
     language_channel = request.form.get('language_channel')
+    speed = request.form.get('speed')
     audio_folder = os.path.join('outputs', 'audio_converted_outputs')
     os.makedirs(audio_folder, exist_ok=True)
 
@@ -178,7 +179,9 @@ def convert_audio():
     if volume:
         kwargs['volume'] = volume
     if language_channel:
-        kwargs['language_channel']=language_channel
+        kwargs['language_channel'] = language_channel
+    if speed:
+        kwargs['speed'] = speed
 
     converted_audio_path = converter.convert(output_format, **kwargs)
 
