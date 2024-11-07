@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, send_file
 import os
-from models import db, FilePath 
+from models import db, Converter
 
 
 test_route = Blueprint('test_route', __name__)
@@ -33,15 +33,21 @@ def upload_file():
 
     file_path = os.path.join(upload_folder, file.filename)
 
-    existing_file = FilePath.query.filter_by(path=file_path).first()
+    new_file = Converter(file_path=file_path,file_name=file.filename)
+    new_file.generate_checksum()
+
+    existing_file = Converter.query.filter_by(checksum=new_file.checksum).first()
     if existing_file:
         return jsonify({"response": "El archivo ya existe en la base de datos."})
 
     file.save(file_path)
 
-    new_file_path = FilePath(path=file_path)
-    db.session.add(new_file_path)
-    db.session.commit()
+    try:
+        db.session.add(new_file)
+    except exception:
+        return jsonify({"response": "Error al guardar el archivo en base de datos."})
+    else:
+        db.session.commit()
 
     return jsonify({"response": "El archivo se ha almacenado en la base de datos."})
 
