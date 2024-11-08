@@ -1,7 +1,7 @@
 import os
 from flask import Blueprint, request, jsonify, send_file
 from converters.video_to_images.video_converter import VideoConverter
-from converters.image_to_image.image_converter import ImageConverter, FILTERS
+from converters.image_to_image.image_converter import ImageConverter, FILTERS, VALID_EXTENSIONS
 from converters.audio_to_audio.audio_converter import AudioConverter
 from converters.extractor.metadataextractor import MetadataExtractor
 from PIL import Image
@@ -105,11 +105,11 @@ def image_configuration():
         return jsonify({"error": "No se encontró un archivo image."}), 400
 
     image_file = request.files['image']
-    valid_extensions = ['jpg', 'jpeg', 'png', 'gif']
     extension = image_file.filename.split('.')[-1].lower()
 
-    if extension not in valid_extensions:
+    if extension not in VALID_EXTENSIONS:
         return jsonify({"error": "Formato de imagen no soportado."}), 400
+        
     
     output_dir = os.path.join('outputs', 'image_converted_outputs')
     os.makedirs(output_dir, exist_ok=True)
@@ -117,21 +117,29 @@ def image_configuration():
     image_path = os.path.join('outputs', 'image_converted_outputs', image_file.filename)
     image_file.save(image_path)
 
-    converter = ImageConverter(image_path, extension)
+    try:
+        converter = ImageConverter(image_path, extension)
+    except ValueError:
+        return jsonify({"error": "No fue posible cargar la imagen"}), 400
+
 
     # Obtener valores de resize, rotate y grayscale desde el formulario
     resize_width = request.form.get('resize_width', type=int)
     resize_height = request.form.get('resize_height', type=int)
-    resize = (resize_width, resize_height) if resize_width or resize_height else None
+    resize_measures = (resize_width, resize_height) if resize_width or resize_height else None 
+    resize_type = request.form.get('resize_type', default=None)
+    format = request.form.get('format', default=None)
     rotate_angle = request.form.get('rotate', type=int)
     grayscale = True if 'GRAYSCALE' in request.form else False
     filters = []
     for filter in FILTERS:
         if filter in request.form:
             filters.append(filter)
-
-    output_path = converter.convert(resize=resize, angle=rotate_angle, grayscale=grayscale, filters=filters)
-
+    try:
+        output_path = converter.convert(resize=resize_measures, resize_type=resize_type, format=format, angle=rotate_angle, grayscale=grayscale, filters=filters)
+    except ValueError as e:
+        return jsonify({"message": e}), 400
+    
     return jsonify({"message": "Imagen procesada y guardada con éxito.", "output_path": "/" + output_path.replace("\\", "/")}), 200
 
 
