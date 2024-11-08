@@ -32,22 +32,24 @@ def upload_file():
         os.makedirs(upload_folder)
 
     file_path = os.path.join(upload_folder, file.filename)
+    file_content = file.read()
 
     new_file = Converter(file_path=file_path,file_name=file.filename)
-    new_file.generate_checksum()
+    new_file.generate_checksum(file_content)
 
     existing_file = Converter.query.filter_by(checksum=new_file.checksum).first()
     if existing_file:
         return jsonify({"response": "El archivo ya existe en la base de datos."})
 
-    file.save(file_path)
-
     try:
         db.session.add(new_file)
-    except exception:
+        db.session.commit()
+    except Exception:
         return jsonify({"response": "Error al guardar el archivo en base de datos."})
     else:
-        db.session.commit()
+        # file.save(file_path)
+        with open(file_path, 'wb') as new_file:
+            new_file.write(file_content)
 
     return jsonify({"response": "El archivo se ha almacenado en la base de datos."})
 

@@ -1,3 +1,5 @@
+import os
+
 from flask_sqlalchemy import SQLAlchemy
 import hashlib
 
@@ -16,5 +18,11 @@ class Converter(db.Model):
     file_path = db.Column(db.String(200), nullable=False)
     checksum = db.Column(db.String(100), nullable=False,unique=True)
 
-    def generate_checksum(self):
-        self.checksum= hashlib.md5(self.file_name.encode()).hexdigest()
+    # def generate_checksum(self):
+    #     hash_md5 = hashlib.md5()
+    #     with open(self.file_path, "rb") as f:
+    #         while chunk := f.read(4096):
+    #             hash_md5.update(chunk)
+    #     self.checksum = hash_md5.hexdigest()
+    def generate_checksum(self,file_content):
+        self.checksum = hashlib.sha256(file_content).hexdigest()

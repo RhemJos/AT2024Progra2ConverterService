@@ -7,6 +7,7 @@ from converters.extractor.metadataextractor import MetadataExtractor
 from PIL import Image
 import mimetypes
 import io
+from models import db, Converter
 
 
 api = Blueprint('api', __name__)
@@ -25,8 +26,20 @@ def video_to_images():
     video_folder = os.path.join('outputs', 'video_to_frames_output')
     os.makedirs(video_folder, exist_ok=True)
     video_path = os.path.join(video_folder, file.filename)
+    video_content = file.read()
 
-    file.save(video_path)
+    new_file = Converter(file_path=video_folder,file_name=file.filename)
+    new_file.generate_checksum(video_content)
+
+    existing_file = Converter.query.filter_by(checksum=new_file.checksum).first()
+    if existing_file:
+        return jsonify({"response": "El archivo ya existe en la base de datos."})
+
+    db.session.add(new_file)
+    db.session.commit()
+
+    with open(video_path, 'wb') as new_file:
+        new_file.write(video_content)
 
     converter = VideoConverter(video_path)
     converter.to_frames()
@@ -56,6 +69,16 @@ def video_to_video():
     video_folder = os.path.join('outputs', 'video_to_frames_output')
     os.makedirs(video_folder, exist_ok=True)
     video_path = os.path.join(video_folder, file.filename)
+
+    new_file = Converter(file_path=video_path,file_name=file.filename)
+    new_file.generate_checksum(file.read())
+
+    existing_file = Converter.query.filter_by(checksum=new_file.checksum).first()
+    if existing_file:
+        return jsonify({"response": "El archivo ya existe en la base de datos."})
+
+    db.session.add(new_file)
+    db.session.commit()
 
     file.save(video_path)
 
