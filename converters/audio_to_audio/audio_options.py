@@ -1,10 +1,11 @@
 
-class AudioOptions():
+class AudioOptions:
     def __init__(self):
         pass
 
     # construye el diccionario de opciones
-    def build_options_audio(self, **kwargs) -> dict:
+    @staticmethod
+    def build_options_audio(**kwargs) -> dict:
         options = {'vn': None}
         if 'bit_rate' in kwargs:
             options['b:a'] = kwargs['bit_rate']
@@ -25,5 +26,5 @@ class AudioOptions():
                     options['af'] = f"atempo={speed}"
             else:
                 print("La velocidad debe estar entre 0.5x y 2.0x")
-                return None
+                return None #cambiar a excepcion o ver como controlar (tal vez directo en audio converter)
         return options
