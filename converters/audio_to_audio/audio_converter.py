@@ -3,8 +3,11 @@ import ffmpeg
 from converters.converter import Converter
 
 class AudioConverter(Converter):
+    def __init__(self,audio_path):
+        self.audio_path=audio_path
+
     def convert(self, output_format='mp3', **kwargs):
-        output_file = os.path.splitext(os.path.basename(self.file_path))[0] +'.' + output_format
+        output_file = os.path.splitext(os.path.basename(self.audio_path))[0] +'.' + output_format
         output_path = os.path.join('outputs','audio_converted_outputs',output_file)
         # si el archivo ya existe no convertir
         if os.path.exists(output_path):
@@ -24,7 +27,7 @@ class AudioConverter(Converter):
         try:
             stdout,stderr=(
                 ffmpeg
-                .input(self.file_path)
+                .input(self.audio_path)
                 .output(output_path,
                         **options
                         )

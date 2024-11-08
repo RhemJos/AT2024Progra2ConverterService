@@ -2,21 +2,21 @@ from PIL import Image, ImageFilter, ImageOps
 import os
 from converters.converter import Converter
 
-FILTERS = ("BLUR", "CONTOUR", "DETAIL", "EDGE_ENHANCE", "EDGE_ENHANCE_MORE", "EMBOSS", 
+IMAGE_FILTERS = ("BLUR", "CONTOUR", "DETAIL", "EDGE_ENHANCE", "EDGE_ENHANCE_MORE", "EMBOSS", 
            "FIND_EDGES", "SHARPEN", "SMOOTH", "SMOOTH_MORE")
 
-VALID_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif']
+VALID_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif']
 
 VALID_RESIZE_TYPES = ("THUMBNAIL", "COVER", "FIT", "PAD")
 
 
 class ImageConverter(Converter):
-    def __init__(self, file_path, extension):
+    def __init__(self, file_path):
         self.file_path = file_path
-        self.extension = extension
+        self.extension = file_path.split('.')[-1].lower()
         try:
             self.img = Image.open(self.file_path)
-        except (IOError, SyntaxError):
+        except (IOError):
             raise ValueError("El archivo no es una imagen valida")
 
     def resize(self, measures, resize_type=None):
@@ -72,7 +72,7 @@ class ImageConverter(Converter):
         if resize: 
             self.resize(resize, resize_type)
         if format:
-            if format not in VALID_EXTENSIONS:
+            if format not in VALID_IMAGE_EXTENSIONS:
                 raise ValueError("Formato de conversión de imagen no soportado.")
             else:
                 self.extension = format

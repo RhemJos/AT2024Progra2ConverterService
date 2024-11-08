@@ -1,5 +1,6 @@
 # Usa una versión más compatible de Python
-FROM python:3.9.0-slim
+FROM python:3.10-slim
+
 
 # Establece el directorio de trabajo
 WORKDIR /app
