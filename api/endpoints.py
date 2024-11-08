@@ -4,13 +4,13 @@ from converters.video_to_images.video_converter import VideoConverter
 from converters.image_to_image.image_converter import ImageConverter
 from converters.audio_to_audio.audio_converter import AudioConverter
 from converters.extractor.metadataextractor import MetadataExtractor
+from converters.compressor.compressor import FolderCompressor
 from PIL import Image
 import mimetypes
 import io
 
 
 api = Blueprint('api', __name__)
-
 # Video Converter - Microservice
 
 
@@ -46,10 +46,15 @@ def video_to_images():
             file_url = request.host_url + '/api/download-frame/' + filename + '/' + file_name
             file_urls.append(file_url)
 
+    compressed_file = FolderCompressor(frames_folder)
+    zip_path = compressed_file.compress()
+    zip_url = request.host_url + '/api/download-frames/' + filename + '.zip'
+
     return jsonify({
         "message": "Video procesado con éxito.",
         "output_path": '/' + frames_folder,
-        "download_URLs": file_urls
+        "download_URLs": file_urls,
+        "download_ZIP_URL": zip_url.replace("\\", "/"),
     })
 
 
@@ -69,7 +74,6 @@ def video_to_video():
     video_folder = os.path.join('outputs', 'video_to_frames_output')
     os.makedirs(video_folder, exist_ok=True)
     video_path = os.path.join(video_folder, file.filename)
-    print(video_path)
     file.save(video_path)
 
     converter = VideoConverter(video_path)
@@ -85,7 +89,7 @@ def video_to_video():
     return jsonify({
         "message": "Video procesado con éxito.",
         "video_path": '/' + video_path_converted.replace("\\", "/"),
-        "download_url": download_url  #.replace("//", "/")
+        "download_url": download_url
     }), 200
 
 @api.route('/download-frame/<foldername>/<filename>', methods=['GET'])
@@ -98,11 +102,9 @@ def download_frame(foldername, filename):
 
 @api.route('/download-frames/<filename>', methods=['GET'])
 def download_frames(filename):
-    frames_folder = os.path.join('outputs', 'video_to_frames_output', filename)
-    
-    if os.path.exists(frames_folder):
-        return jsonify({"frames_folder_path": frames_folder})
-    
+    frames_zip = os.path.join('outputs', 'video_to_frames_output', filename)
+    if os.path.exists(frames_zip):
+        return send_file(frames_zip, as_attachment=True)
     return jsonify({"error": "Folder not found"}), 404
 
 
@@ -114,16 +116,10 @@ def download_video(filename):
     if os.path.exists(video_path):
         # mime_type, _ = mimetypes.guess_type(video_path)
         return send_file(video_path, as_attachment=True, download_name=filename)
-        # return jsonify({
-        #     "video_path": video_path,
-        #     "mime_type": mime_type or "unknown"
-        # })
-
     return jsonify({"error": "File not found"}), 404
 
 
 # Image Converter - Microservice
-
 @api.route('/image-configuration', methods=['POST'])
 def image_configuration():
     if 'image' not in request.files:
@@ -153,11 +149,10 @@ def image_configuration():
     output_path = converter.image_convert(resize=(resize_width, resize_height),
                                           rotate=rotate_angle, grayscale=grayscale)
 
-    # download_url = f"/download-image/{os.path.basename(output_path)}"
     download_url = request.host_url + '/api/download-image/' + os.path.basename(output_path)
     return jsonify({
         "message": "Imagen procesada y guardada con éxito.",
-        # "output_path": "/" + output_path.replace("\\", "/"),
+        "output_path": "/" + output_path.replace("\\", "/"),
         "download_url": download_url}), 200
 
 
@@ -167,11 +162,7 @@ def download_image(filename):
     image_path = os.path.join(image_folder, filename)
 
     if os.path.exists(image_path):
-        # return jsonify({
-        #     "image_path": image_path,
-        # })
         return send_file(image_path, as_attachment=True, download_name=filename)
-
     return jsonify({"error": "File not found"}), 404
 
 
@@ -179,7 +170,6 @@ def download_image(filename):
 
 @api.route('/convert-audio', methods=['POST'])
 def convert_audio():
-
     if 'audio' not in request.files:
         return jsonify({"error": "No se proporcionó el archivo de audio."}), 400
 
@@ -219,7 +209,6 @@ def convert_audio():
 
 
 # Meda data extractor - Microservice
-
 @api.route('/get-metadata', methods=['POST'])
 def get_metadata():
     if 'file' not in request.files:
