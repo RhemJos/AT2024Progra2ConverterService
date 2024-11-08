@@ -26,5 +26,5 @@ class AudioOptions:
                     options['af'] = f"atempo={speed}"
             else:
                 print("La velocidad debe estar entre 0.5x y 2.0x")
-                return None #cambiar a excepcion o ver como controlar (tal vez directo en audio converter)
+                return None
         return options

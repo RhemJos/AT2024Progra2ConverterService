@@ -1,6 +1,7 @@
 import os
 import ffmpeg
 
+from converters.audio_to_audio.audio_exception import AudioConversionError
 from converters.audio_to_audio.audio_options import AudioOptions
 
 
@@ -17,14 +18,12 @@ class AudioConverter:
             return output_path
 
         # setear opciones - cambiar a metodo
-        options = AudioOptions.build_options_audio(**kwargs)
-        if options is None:
-            return None  # cambiar a excepcion en vez de return none
+        options = self._get_audio_options(**kwargs)
 
         try:
             self._convert_audio(output_path, options)
         except ffmpeg.Error as e:
-            print(f"Algo falló en la conversión : {e.stderr.decode()}") #cambiar a excepcion
+            raise AudioConversionError(f"Algo falló en la conversión de audio: {e.stderr.decode()}")
         else:
             return output_path
 
@@ -36,3 +35,10 @@ class AudioConverter:
     def _convert_audio(self, output_path, options):
         # Realiza la conversión de audio utilizando ffmpeg
         ffmpeg.input(self.audio_path).output(output_path, **options).run(capture_stdout=True, capture_stderr=True)
+
+    def _get_audio_options(self, **kwargs):
+        opt = AudioOptions.build_options_audio(**kwargs)
+        if opt is None:
+            raise AudioConversionError(f"Error al construir opciones de audio")
+        return opt
+
