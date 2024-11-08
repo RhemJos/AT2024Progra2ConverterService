@@ -1,3 +1,3 @@
 class AudioConversionError(Exception):
-    #Excepción para errores de conversión de audio
+    # Exception for audio conversion errors
     pass

@@ -3,7 +3,7 @@ class AudioOptions:
     def __init__(self):
         pass
 
-    # construye el diccionario de opciones
+    # Build options
     @staticmethod
     def build_options_audio(**kwargs) -> dict:
         options = {'vn': None}
