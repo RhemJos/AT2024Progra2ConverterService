@@ -21,7 +21,6 @@ class VideoConverter:
             .run(overwrite_output=True)
         )
 
-
     def convert_to_format(self, output_format=None, fps=None, video_codec=None, audio_codec=None, audio_channels=None): 
         filename = os.path.splitext(os.path.basename(self.video_path))[0]
         input_format = os.path.splitext(self.video_path)[1][1:].lower()

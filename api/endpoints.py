@@ -4,6 +4,7 @@ from converters.video_to_images.video_converter import VideoConverter
 from converters.image_to_image.image_converter import ImageConverter
 from converters.audio_to_audio.audio_converter import AudioConverter
 from converters.extractor.metadataextractor import MetadataExtractor
+from validators.VideoValidator import VideoValidator
 from PIL import Image
 import mimetypes
 import io
@@ -39,37 +40,6 @@ def video_to_images():
     return jsonify({"message": "Video procesado con éxito.", "output_path": '/' + frames_folder.replace("\\", "/")})
 
 
-
-# @api.route('/video-to-video', methods=['POST'])
-# def video_to_video():
-#     if 'file' not in request.files:
-#         return jsonify({"error": "No se ha enviado ningun 'file' en la solicitud."})
-
-#     file = request.files['file']
-#     if file.filename == '':
-#         return jsonify({"error": "No se ha seleccionado ningún archivo."})
-    
-#     format = request.form.get('format')
-#     if format == '':
-#         return jsonify({"error": "No se ha seleccionado tipo de archivo a convertir."})
-
-#     video_folder = os.path.join('outputs', 'video_to_frames_output')
-#     os.makedirs(video_folder, exist_ok=True)
-#     video_path = os.path.join(video_folder, file.filename)
-
-#     file.save(video_path)
-
-#     converter = VideoConverter(video_path)
-#     converter.convert_format(format)
-
-#     os.remove(video_path)
-
-#     filename = os.path.splitext(os.path.basename(video_path))[0]
-#     video_path_converted = os.path.join('outputs', 'video_converted_output', filename + '.' + format)
-
-#     return jsonify({"message": "Video procesado con éxito.", "video_path": '/' + video_path_converted.replace("\\", "/")})
-
-
 @api.route('/video-convert', methods=['POST'])
 def video_convert():
     if 'file' not in request.files:
@@ -78,14 +48,6 @@ def video_convert():
     file = request.files['file']
     if file.filename == '':
         return jsonify({"error": "No se ha seleccionado ningún archivo."})
-    
-    
-    OPTIONS = {
-        "format": ["mp4", "mov", "avi", "mkv", "flv", "webm", "ogg", "wmv"],
-        "vcodec": ["libx264", "libx265", "mpeg4", "vp8", "vp9", "prores", "huffyuv", "hevc_nvenc"],
-        "acodec": ["aac", "mp3", "opus", "ac3", "pcm_s16le", "vorbis"],
-        "audio_channels": [1, 2, 4, 6, 8]
-    }
 
     fps = request.form.get('fps')
     output_format = request.form.get('format')
@@ -93,41 +55,17 @@ def video_convert():
     acodec = request.form.get('acodec')
     audio_channels = request.form.get('audio_channels')
 
-    # fps = int(fps) if fps else None
-
-    if not output_format:
-        return jsonify({"error": "No se ha especificado formato de salida."})
-    
-    if output_format not in OPTIONS["format"]:
-        return jsonify({"error": f"Formato de salida '{output_format}' no es válido. Opciones válidas: {OPTIONS['format']}"}), 400
-
-    if vcodec and vcodec not in OPTIONS["vcodec"]:
-        return jsonify({"error": f"Códec de video '{vcodec}' no es válido. Opciones válidas: {OPTIONS['vcodec']}"}), 400
-
-    if acodec and acodec not in OPTIONS["acodec"]:
-        return jsonify({"error": f"Códec de audio '{acodec}' no es válido. Opciones válidas: {OPTIONS['acodec']}"}), 400
-    
-    if fps:
-        try:
-            fps = int(fps)
-        except ValueError:
-            return jsonify({"error": "El número de frames por segundo debe ser un número entero."}), 400
-
-    if audio_channels:
-        try:
-            audio_channels = int(audio_channels)
-        except ValueError:
-            return jsonify({"error": "El número de canales de audio debe ser un número entero."}), 400
-
-        if audio_channels not in OPTIONS["audio_channels"]:
-            return jsonify({"error": f"Canales de audio '{audio_channels}' no es válido. Opciones válidas: {OPTIONS['audio_channels']}"}), 400
-
+    # Validación de parámetros
+    validation_errors = VideoValidator.validate(output_format, vcodec, acodec, fps, audio_channels)
+    if validation_errors:
+        return jsonify({"error": validation_errors}), 400
 
     video_folder = os.path.join('outputs', 'video_converted_output')
     os.makedirs(video_folder, exist_ok=True)
     video_path = os.path.join(video_folder, file.filename)
     file.save(video_path)
 
+    # Conversión del video
     converter = VideoConverter(video_path)
     converter.convert_to_format(
         output_format=output_format,
@@ -141,6 +79,7 @@ def video_convert():
     video_path_converted = os.path.join('outputs', 'video_converted_output', f"{filename}.{output_format}")
 
     return jsonify({"message": "Video procesado con éxito.", "video_path": '/' + video_path_converted.replace("\\", "/")})
+
 
 
 
