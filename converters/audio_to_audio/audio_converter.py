@@ -1,6 +1,9 @@
 import os
 import ffmpeg
 
+from converters.audio_to_audio.audio_options import AudioOptions
+
+
 class AudioConverter():
     def __init__(self,audio_path):
         self.audio_path=audio_path
@@ -8,33 +11,18 @@ class AudioConverter():
     def convert(self, output_format='mp3', **kwargs):
         output_file = os.path.splitext(os.path.basename(self.audio_path))[0] +'.' + output_format
         output_path = os.path.join('outputs','audio_converted_outputs',output_file)
+
         # si el archivo ya existe no convertir
         if os.path.exists(output_path):
             print(f'El archivo {output_path} ya existe.')
             return output_path
+
         # setear opciones
-        options= {'vn':None}
-        if 'bit_rate' in kwargs:
-            options['b:a']= kwargs['bit_rate']
-        if 'channels' in kwargs:
-            options['ac']= kwargs['channels']
-        if 'sample_rate' in kwargs:
-            options['ar']= kwargs['sample_rate']
-        if 'volume' in kwargs:
-            options['af']= f"volume={kwargs['volume']}"
-        if 'language_channel' in kwargs:
-            options['map'] = f'0:a:{kwargs["language_channel"]}'
-        if 'speed' in kwargs:
-            speed = float(kwargs['speed'])
-            # El filtro 'atempo' de FFmpeg permite valores entre 0.5 y 2.0 para la velocidad
-            if 0.5 <= speed <= 2.0:
-                if 'af' in options:
-                    options['af'] += f",atempo={speed}"
-                else:
-                    options['af'] = f"atempo={speed}"
-            else:
-                print("La velocidad debe estar entre 0.5x y 2.0x")
-                return None
+        builder_options = AudioOptions()
+        options = builder_options.build_options_audio(**kwargs)
+        if options is None:
+            return None #cambiar a excepcion en vez de return none
+
         try:
             stdout,stderr=(
                 ffmpeg
