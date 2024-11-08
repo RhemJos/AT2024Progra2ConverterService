@@ -1,7 +1,7 @@
 import os
 from flask import Blueprint, request, jsonify, send_file
 from converters.video_to_images.video_converter import VideoConverter
-from converters.image_to_image.image_converter import ImageConverter, FILTERS, VALID_EXTENSIONS
+from converters.image_to_image.image_converter import ImageConverter, IMAGE_FILTERS, VALID_IMAGE_EXTENSIONS
 from converters.audio_to_audio.audio_converter import AudioConverter
 from converters.extractor.metadataextractor import MetadataExtractor
 from PIL import Image
@@ -14,19 +14,11 @@ api = Blueprint('api', __name__)
 # Video Converter - Microservice
 
 @api.route('/video-to-images', methods=['POST'])
-def video_to_images():
-    if 'file' not in request.files:
-        return jsonify({"error": "No se ha enviado ningun 'file' en la solicitud."})
-
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({"error": "No se ha seleccionado ningún archivo."})
-
-    video_folder = os.path.join('outputs', 'video_to_frames_output')
-    os.makedirs(video_folder, exist_ok=True)
-    video_path = os.path.join(video_folder, file.filename)
-
-    file.save(video_path)
+def video_to_images():  
+    try:
+        video_path = save_file(request, 'file', 'video_to_frames_output')
+    except ValueError as e:
+        return jsonify({"error": e.args[0]}), 400
 
     converter = VideoConverter(video_path)
     converter.to_frames()
@@ -41,23 +33,16 @@ def video_to_images():
 
 
 @api.route('/video-to-video', methods=['POST'])
-def video_to_video():
-    if 'file' not in request.files:
-        return jsonify({"error": "No se ha enviado ningun 'file' en la solicitud."})
-
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({"error": "No se ha seleccionado ningún archivo."})
-    
+def video_to_video():    
     format = request.form.get('format')
     if format == '':
         return jsonify({"error": "No se ha seleccionado tipo de archivo a convertir."})
 
-    video_folder = os.path.join('outputs', 'video_to_frames_output')
-    os.makedirs(video_folder, exist_ok=True)
-    video_path = os.path.join(video_folder, file.filename)
-
-    file.save(video_path)
+    try:
+        video_path = save_file(request, 'file', 'video_to_frames_output')
+    except ValueError as e:
+        return jsonify({"error": e.args[0]}), 400
+    
 
     converter = VideoConverter(video_path)
     converter.convert_format(format)
@@ -101,24 +86,13 @@ def download_video(filename):
 
 @api.route('/image-configuration', methods=['POST'])
 def image_configuration():
-    if 'image' not in request.files:
-        return jsonify({"error": "No se encontró un archivo image."}), 400
-
-    image_file = request.files['image']
-    extension = image_file.filename.split('.')[-1].lower()
-
-    if extension not in VALID_EXTENSIONS:
-        return jsonify({"error": "Formato de imagen no soportado."}), 400
-        
-    
-    output_dir = os.path.join('outputs', 'image_converted_outputs')
-    os.makedirs(output_dir, exist_ok=True)
-    
-    image_path = os.path.join('outputs', 'image_converted_outputs', image_file.filename)
-    image_file.save(image_path)
-
     try:
-        converter = ImageConverter(image_path, extension)
+        image_path = save_file(request, 'image', 'image_converted_outputs', VALID_IMAGE_EXTENSIONS)
+    except ValueError as e:
+        return jsonify({"error": e.args[0]}), 400
+    
+    try:
+        converter = ImageConverter(image_path)
     except ValueError:
         return jsonify({"error": "No fue posible cargar la imagen"}), 400
 
@@ -132,11 +106,12 @@ def image_configuration():
     rotate_angle = request.form.get('rotate', type=int)
     grayscale = True if 'GRAYSCALE' in request.form else False
     filters = []
-    for filter in FILTERS:
+    for filter in IMAGE_FILTERS:
         if filter in request.form:
             filters.append(filter)
     try:
-        output_path = converter.convert(resize=resize_measures, resize_type=resize_type, format=format, angle=rotate_angle, grayscale=grayscale, filters=filters)
+        output_path = converter.convert(resize=resize_measures, resize_type=resize_type, format=format, 
+                                        angle=rotate_angle, grayscale=grayscale, filters=filters)
     except ValueError as e:
         return jsonify({"message": e}), 400
     
@@ -161,23 +136,17 @@ def download_image(filename):
 # Audio Converter - Microservice
 
 @api.route('/convert-audio', methods=['POST'])
-def convert_audio():
-
-    if 'audio' not in request.files:
-        return jsonify({"error": "No se proporcionó el archivo de audio."}), 400
-
-    audio_file = request.files['audio']
+def convert_audio():    
     output_format = request.form.get('output_format', 'mp3')  # Formato predeterminado
     bit_rate = request.form.get('bit_rate')
     channels = request.form.get('channels')
     sample_rate = request.form.get('sample_rate')
     volume = request.form.get('volume')
-
-    audio_folder = os.path.join('outputs', 'audio_converted_outputs')
-    os.makedirs(audio_folder, exist_ok=True)
-
-    audio_path = os.path.join('outputs', 'audio_converted_outputs', audio_file.filename)
-    audio_file.save(audio_path)
+  
+    try:
+        audio_path = save_file(request, 'audio', 'audio_converted_outputs')
+    except ValueError as e:
+        return jsonify({"error": e.args[0]}), 400
 
     converter = AudioConverter(audio_path)
 
@@ -203,15 +172,10 @@ def convert_audio():
 
 @api.route('/get-metadata', methods=['POST'])
 def get_metadata():
-    if 'file' not in request.files:
-        return jsonify({"error": "No se ha enviado ningun 'file' en la solicitud."}), 400
-
-    file = request.files['file']
-    output_dir = os.path.join('outputs', 'metadata_outputs')
-    os.makedirs(output_dir, exist_ok=True)
-
-    file_path = os.path.join(output_dir, file.filename)
-    file.save(file_path)
+    try:
+        file_path = save_file(request, 'file', 'metadata_outputs')
+    except ValueError as e:
+        return jsonify({"error": e.args[0]}), 400
 
     meta_data_extractor = MetadataExtractor(file_path)
     result = meta_data_extractor.extract()
@@ -219,3 +183,26 @@ def get_metadata():
     os.remove(file_path)
 
     return jsonify(result)
+
+
+# Extracts file from request, check its extension(optional) and saves it in the corresponding dir
+def save_file(request, file_type, dir, valid_formats=None):
+    if file_type not in request.files:
+        raise ValueError(f"No se ha enviado ningún archivo de {file_type} en la solicitud.")
+
+    file = request.files[file_type]
+    if file.filename == '':
+        raise ValueError("No se ha seleccionado ningún archivo.")
+    
+    if valid_formats:
+        extension = file.filename.split('.')[-1].lower()
+        if extension not in valid_formats:
+            raise ValueError(f"Formato de {file_type} no soportado.")
+
+    file_folder = os.path.join('outputs', dir)
+    os.makedirs(file_folder, exist_ok=True)
+
+    file_path = os.path.join('outputs',  dir, file.filename)
+    file.save(file_path)
+
+    return file_path
