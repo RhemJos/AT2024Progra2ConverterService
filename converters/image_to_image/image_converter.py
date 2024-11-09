@@ -1,47 +1,86 @@
-from PIL import Image
-from PIL.ImagePalette import random
+from PIL import Image, ImageFilter, ImageOps
 import os
+from converters.converter import Converter
 
-class ImageConverter:
-    def __init__(self, path, extension):
-        self.path = path
-        self.extension = extension
+IMAGE_FILTERS = ("BLUR", "CONTOUR", "DETAIL", "EDGE_ENHANCE", "EDGE_ENHANCE_MORE", "EMBOSS", 
+           "FIND_EDGES", "SHARPEN", "SMOOTH", "SMOOTH_MORE")
 
-    def image_resize(self, width=None, height=None):
-        img = Image.open(self.path)
-        if width is None or height is None:
-            width = img.width
-            height = img.height
-        img_resized = img.resize((width, height))
-        return img_resized
+VALID_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif']
 
-    def image_rotate(self, img, angle):
-        img_rotated = img.rotate(angle, expand=True, fillcolor="black")
-        return img_rotated
+VALID_RESIZE_TYPES = ("THUMBNAIL", "COVER", "FIT", "PAD")
 
-    def image_grayscale(self, img, apply):
-        if apply:
-            img_grayscaled = img.convert("L")
-            return img_grayscaled
-        return img
 
-    def image_convert(self, resize=None, rotate=None, grayscale=None):
-        img = self.image_resize()
+class ImageConverter(Converter):
+    def __init__(self, file_path):
+        self.file_path = file_path
+        self.extension = file_path.split('.')[-1].lower()
+        try:
+            self.img = Image.open(self.file_path)
+        except (IOError):
+            raise ValueError("El archivo no es una imagen valida")
 
-        if rotate is not None:
-            img = self.image_rotate(img, rotate)
+    def resize(self, measures, resize_type=None):
+        if (len(measures) != 2):
+            raise ValueError("Resize debe ser de tipo (ancho, alto)")
+        width = measures[0]
+        height = measures[1]
+        if not (width):
+            width = self.img.width
+        if not (height):
+            height = self.img.height
+        measures = (width, height)
+        if resize_type:
+            self.preset_resize(measures, resize_type)
+        else:
+            self.custom_resize(measures)
         
-        img = self.image_grayscale(img, grayscale)
+    def preset_resize(self, measures, resize_type):
+        if resize_type not in VALID_RESIZE_TYPES:
+            raise ValueError("El tipo de resize ingresado no se reconoce")
+        match resize_type:
+            case "THUMBNAIL":
+                self.img.thumbnail(measures)      
+            case "COVER":
+                self.img = ImageOps.cover(self.img, measures)    
+            case "FIT":
+                self.img = ImageOps.fit(self.img, measures)
+            case "PAD":
+                self.img = ImageOps.pad(self.img, measures, color="#ffff")    
+                
+    def custom_resize(self, measures):
+        self.img = self.img.resize(measures)
 
-        base_name = os.path.splitext(os.path.basename(self.path))[0]
+    def rotate(self, angle):
+        self.img = self.img.rotate(angle, expand=True, fillcolor="black")
+
+    def grayscale(self):
+        self.img = self.img.convert("L")
+
+    def apply_filter(self, filter_name):
+        filter_name = getattr(ImageFilter, filter_name, None)
+        if filter_name:
+            self.img = self.img.filter(filter_name)
+
+    def convert(self, resize=None, resize_type=None, format=None, angle=None, grayscale=None, filters=[]):
+        if angle:
+            self.rotate(angle)
+        if grayscale:
+            self.grayscale()
+        if filters:
+            for filter in filters:
+                self.apply_filter(filter)
+        if resize: 
+            self.resize(resize, resize_type)
+        if format:
+            if format not in VALID_IMAGE_EXTENSIONS:
+                raise ValueError("Formato de conversión de imagen no soportado.")
+            else:
+                self.extension = format
+        
+        base_name = os.path.splitext(os.path.basename(self.file_path))[0]
         edited_name = f"{base_name}_edited.{self.extension}"
         output_path = os.path.join('outputs', 'image_converted_outputs', edited_name)
-        img.save(output_path)
+        self.img.save(output_path)
 
         return output_path
     
-    # @staticmethod
-    # def generate_name():
-    #     chars = string.ascii_letters + string.ascii_lowercase + string.ascii_uppercase
-    #     name = "".join(random.choice(chars) for _ in range(10))
-    #     return name
