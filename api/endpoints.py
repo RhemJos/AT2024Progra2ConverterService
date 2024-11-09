@@ -4,10 +4,12 @@ from converters.video_to_images.video_converter import VideoConverter
 from converters.image_to_image.image_converter import ImageConverter
 from converters.audio_to_audio.audio_converter import AudioConverter
 from converters.extractor.metadataextractor import MetadataExtractor
+from models import db, File
 from PIL import Image
 import mimetypes
 import io
-from models import db, Converter
+import hashlib
+
 
 
 api = Blueprint('api', __name__)
@@ -26,27 +28,20 @@ def video_to_images():
     video_folder = os.path.join('outputs', 'video_to_frames_output')
     os.makedirs(video_folder, exist_ok=True)
     video_path = os.path.join(video_folder, file.filename)
-    video_content = file.read()
 
-    new_file = Converter(file_path=video_folder,file_name=file.filename)
-    new_file.generate_checksum(video_content)
+    file.save(video_path)
 
-    existing_file = Converter.query.filter_by(checksum=new_file.checksum).first()
-    if existing_file:
-        return jsonify({"response": "El archivo ya existe en la base de datos."})
+    file_in_db, new_path = get_or_save(video_path)
+    if file_in_db:
+        os.remove(video_path)
+        return jsonify({"message": "Video ya existe.", "output_path": '/' + new_path.replace("\\", "/")})
 
-    db.session.add(new_file)
-    db.session.commit()
-
-    with open(video_path, 'wb') as new_file:
-        new_file.write(video_content)
-
-    converter = VideoConverter(video_path)
+    converter = VideoConverter(new_path)
     converter.to_frames()
 
-    os.remove(video_path)
+    os.remove(new_path)
 
-    filename = os.path.splitext(os.path.basename(video_path))[0]
+    filename = os.path.splitext(os.path.basename(new_path))[0]
     frames_folder = os.path.join('outputs', 'video_to_frames_output', filename)
 
     return jsonify({"message": "Video procesado con éxito.", "output_path": '/' + frames_folder.replace("\\", "/")})
@@ -70,24 +65,19 @@ def video_to_video():
     os.makedirs(video_folder, exist_ok=True)
     video_path = os.path.join(video_folder, file.filename)
 
-    new_file = Converter(file_path=video_path,file_name=file.filename)
-    new_file.generate_checksum(file.read())
-
-    existing_file = Converter.query.filter_by(checksum=new_file.checksum).first()
-    if existing_file:
-        return jsonify({"response": "El archivo ya existe en la base de datos."})
-
-    db.session.add(new_file)
-    db.session.commit()
-
     file.save(video_path)
 
-    converter = VideoConverter(video_path)
+    file_in_db, new_path = get_or_save(video_path)
+    if file_in_db:
+        os.remove(video_path)
+        return jsonify({"message": "Video ya existe.", "output_path": '/' + new_path.replace("\\", "/")})
+
+    converter = VideoConverter(new_path)
     converter.convert_format(format)
 
-    os.remove(video_path)
+    os.remove(new_path)
 
-    filename = os.path.splitext(os.path.basename(video_path))[0]
+    filename = os.path.splitext(os.path.basename(new_path))[0]
     video_path_converted = os.path.join('outputs', 'video_converted_output', filename + '.' + format)
 
     return jsonify({"message": "Video procesado con éxito.", "video_path": '/' + video_path_converted.replace("\\", "/")})
@@ -229,3 +219,39 @@ def get_metadata():
     os.remove(file_path)
 
     return jsonify(result)
+
+
+
+def generate_checksum(filename):
+    h  = hashlib.sha256()
+    b  = bytearray(2**18)
+    mv = memoryview(b)
+    with open(filename, 'rb', buffering=0) as f:
+        while n := f.readinto(mv):
+            h.update(mv[:n])
+    return h.hexdigest()
+
+
+# search file in db, saves file if it does not exist
+# returns a tuple (file_in_db, file_path) where:
+# file_in_db is a boolean that indicates if the files already exists in db or not
+# if the file exists file_path is the path to the frames
+# if its new file_path is the path to the video renamed with its checksum
+def get_or_save(file_path):
+    checksum= generate_checksum(file_path)
+    existing_file = File.query.filter_by(checksum=checksum).first()
+    if existing_file:
+        return True,existing_file.output_path
+
+    file_extension= file_path.split('.')[-1]
+    new_file = File(file_extension=file_extension,checksum=checksum)
+
+    new_path = os.path.join(os.path.dirname(file_path), new_file.checksum+'.'+new_file.file_extension)
+    os.rename(file_path,new_path) # rename file to its checksum
+
+    new_file.output_path=os.path.join('outputs','video_to_frames_output', new_file.checksum)
+    new_file.file_path = new_path # updates the file object to save in db
+
+    db.session.add(new_file)
+    db.session.commit()
+    return False,new_path
