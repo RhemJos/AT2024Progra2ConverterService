@@ -40,8 +40,8 @@ def video_to_images():
     return jsonify({"message": "Video procesado con éxito.", "output_path": '/' + frames_folder.replace("\\", "/")})
 
 
-@api.route('/video-convert', methods=['POST'])
-def video_convert():
+@api.route('/video-to-video', methods=['POST'])
+def video_to_video():
     if 'file' not in request.files:
         return jsonify({"error": "No se ha enviado ningun 'file' en la solicitud."})
 
@@ -60,14 +60,14 @@ def video_convert():
     if validation_errors:
         return jsonify({"error": validation_errors}), 400
 
-    video_folder = os.path.join('outputs', 'video_converted_output')
+    video_folder = os.path.join('outputs', 'video_to_video_outputs')
     os.makedirs(video_folder, exist_ok=True)
     video_path = os.path.join(video_folder, file.filename)
     file.save(video_path)
 
     # Conversión del video
     converter = VideoConverter(video_path)
-    converter.convert_to_format(
+    converter.to_format(
         output_format=output_format,
         fps=fps,
         video_codec=vcodec,
@@ -76,12 +76,12 @@ def video_convert():
     )
 
     filename = os.path.splitext(os.path.basename(video_path))[0]
-    video_path_converted = os.path.join('outputs', 'video_converted_output', f"{filename}.{output_format}")
+    video_path_converted = os.path.join('outputs', 'video_to_video_outputs', f"{filename}.{output_format}")
+
+    if (video_path != video_path_converted):
+        os.remove(video_path)
 
     return jsonify({"message": "Video procesado con éxito.", "video_path": '/' + video_path_converted.replace("\\", "/")})
-
-
-
 
 
 @api.route('/download-frames/<filename>', methods=['GET'])
