@@ -1,11 +1,12 @@
 import os
 import ffmpeg
+from converters.converter import Converter
 
 from converters.audio_to_audio.audio_exception import AudioConversionError
 from converters.audio_to_audio.audio_options import AudioOptions
 
 
-class AudioConverter:
+class AudioConverter(Converter):
     def __init__(self, audio_path):
         self.audio_path = audio_path
 
