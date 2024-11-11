@@ -1,7 +1,8 @@
 import os
 import ffmpeg
+from converters.converter import Converter
 
-class AudioConverter():
+class AudioConverter(Converter):
     def __init__(self,audio_path):
         self.audio_path=audio_path
 

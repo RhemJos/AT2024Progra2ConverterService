@@ -7,4 +7,4 @@ class Extractor(ABC):
     
     @abstractmethod
     def extract(self):
-        pass
+        ''' Implement extraction method '''
