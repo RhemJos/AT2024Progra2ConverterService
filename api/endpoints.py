@@ -115,7 +115,7 @@ def video_to_video():
 
 @api.route('/download-frame/<foldername>/<filename>', methods=['GET'])
 def download_frame(foldername, filename):
-    folder = os.path.join('outputs', 'video_to_frames_output', foldername)
+    folder = os.path.join('outputs', 'video_to_frames_outputs', foldername)
     frame_path = os.path.join(folder, filename)
     if os.path.exists(frame_path):
         return send_file(frame_path, as_attachment=True, download_name=f"{foldername}_{filename}")
@@ -124,7 +124,7 @@ def download_frame(foldername, filename):
 
 @api.route('/download-frames/<filename>', methods=['GET'])
 def download_frames(filename):
-    frames_zip = os.path.join('outputs', 'video_to_frames_output', filename)
+    frames_zip = os.path.join('outputs', 'video_to_frames_outputs', filename)
     if os.path.exists(frames_zip):
         return send_file(frames_zip, as_attachment=True)
     return jsonify({"error": "Folder not found"}), 404
@@ -132,7 +132,7 @@ def download_frames(filename):
 
 @api.route('/download-video/<filename>', methods=['GET'])
 def download_video(filename):
-    video_folder = os.path.join('outputs', 'video_converted_output')
+    video_folder = os.path.join('outputs', 'video_to_video_outputs')
     video_path = os.path.join(video_folder, filename)
 
     if os.path.exists(video_path):
