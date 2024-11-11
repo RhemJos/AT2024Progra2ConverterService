@@ -1,8 +1,7 @@
 import platform
-import os
 from utils import CommandExecutor, Formatter
 from converters.extractor.extractor import Extractor
-
+import os
 
 class MetadataExtractor(Extractor):
     def extract(self):
@@ -15,7 +14,7 @@ class MetadataExtractor(Extractor):
         exif_tool_path = cmd.get_execfile_path( "converters/extractor/bin/exifTool/" + exif_tool_distribution) #Construir la ruta absoluta del ejecutable exiftool
         exif_tool_command = f"{exif_tool_path} {self.file_path}" #Crear el comando para ejecutar exiftool
         result_text = cmd.run_command(exif_tool_command)
-        
-        formatter = Formatter() # Formatear el resultado a diccionario
+        formatter = Formatter()
         return formatter.key_value_string_to_dict(result_text, ":", "\n")
+
 
