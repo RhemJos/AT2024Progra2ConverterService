@@ -1,7 +1,9 @@
 import os
 import ffmpeg
+# from converters.converter import Converter
 
-class VideoConverter:
+
+class VideoConverter():
     def __init__(self, video_path):
         self.video_path = video_path
 
