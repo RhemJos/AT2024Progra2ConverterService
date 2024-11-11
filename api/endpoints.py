@@ -42,15 +42,6 @@ def video_to_images():
     filename = os.path.splitext(os.path.basename(new_path))[0]
     frames_folder = os.path.join('outputs', 'video_to_frames_output', filename).replace("\\", "/")
 
-    # # Generando URLs
-    # file_names = os.listdir(frames_folder)
-    # file_urls = []
-    # for file_name in file_names:
-    #     file_path = os.path.join(frames_folder, file_name)
-    #     if os.path.isfile(file_path):
-    #         file_url = request.host_url + '/api/download-frame/' + filename + '/' + file_name
-    #         file_urls.append(file_url)
-
     compressed_file = FolderCompressor(frames_folder)
     zip_path = compressed_file.compress()
     zip_url = request.host_url + '/api/download-frames/' + filename + '.zip'
@@ -58,7 +49,6 @@ def video_to_images():
     return jsonify({
         "message": "Video procesado con éxito.",
         "output_path": '/' + frames_folder,
-        # # "download_URLs": file_urls,
         "download_URL": zip_url.replace("\\", "/"),
     })
 
