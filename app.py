@@ -11,10 +11,10 @@ app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DB_URL')
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///file_paths.db'
 # app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db.init_app(app)
+# db.init_app(app)
 
-with app.app_context():
-    db.create_all()
+# with app.app_context():
+#     db.create_all()
 
 app.register_blueprint(test_route)
 app.register_blueprint(api, url_prefix='/api')

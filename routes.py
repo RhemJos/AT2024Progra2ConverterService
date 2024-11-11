@@ -88,7 +88,7 @@ def get_or_save(file_path):
     new_path = os.path.join(os.path.dirname(file_path), new_file.checksum+'.'+new_file.file_extension)
     os.rename(file_path,new_path) # rename file to its checksum
 
-    new_file.output_path=os.path.join('outputs','video_to_frames_output', new_file.checksum)
+    new_file.output_path=os.path.join('outputs','video_to_frames_outputs', new_file.checksum)
     new_file.file_path = new_path # updates the file object to save in db
 
     db.session.add(new_file)
