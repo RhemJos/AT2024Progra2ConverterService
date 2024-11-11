@@ -1,6 +1,5 @@
 import os
 import ffmpeg
-import subprocess
 
 class VideoConverter:
     def __init__(self, video_path):
@@ -12,15 +11,7 @@ class VideoConverter:
         os.makedirs(frames_folder, exist_ok=True)
 
         if output_path is None:
-            output_path = os.path.join(frames_folder, 'frame_%d.jpg')
-        
-        (
-            ffmpeg
-            .input(self.video_path)
-            .filter('fps', fps=fps)
-            .output(output_path)
-            .run(overwrite_output=True)
-        )
+            output_path = os.path.join(frames_folder, 'frame_%04d.jpg')
 
     def to_format(self, output_format=None, fps=None, video_codec=None, audio_codec=None, audio_channels=None): 
         filename = os.path.splitext(os.path.basename(self.video_path))[0]

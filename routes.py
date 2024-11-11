@@ -44,7 +44,7 @@ def upload_file():
 
     try:
         db.session.add(new_file)
-    except exception:
+    except:
         return jsonify({"response": "Error al guardar el archivo en base de datos."})
     else:
         db.session.commit()

@@ -5,14 +5,17 @@ from converters.image_to_image.image_converter import ImageConverter
 from converters.audio_to_audio.audio_converter import AudioConverter
 from converters.extractor.metadataextractor import MetadataExtractor
 from validators.VideoValidator import VideoValidator
+
+from converters.compressor.compressor import FolderCompressor
+
 from PIL import Image
 import mimetypes
 import io
 
 
 api = Blueprint('api', __name__)
-
 # Video Converter - Microservice
+
 
 @api.route('/video-to-images', methods=['POST'])
 def video_to_images():
@@ -35,10 +38,27 @@ def video_to_images():
     os.remove(video_path)
 
     filename = os.path.splitext(os.path.basename(video_path))[0]
-    frames_folder = os.path.join('outputs', 'video_to_frames_outputs', filename)
+    frames_folder = os.path.join('outputs', 'video_to_frames_output', filename).replace("\\", "/")
 
-    return jsonify({"message": "Video procesado con éxito.", "output_path": '/' + frames_folder.replace("\\", "/")})
+    # Generando URLs
+    file_names = os.listdir(frames_folder)
+    file_urls = []
+    for file_name in file_names:
+        file_path = os.path.join(frames_folder, file_name)
+        if os.path.isfile(file_path):
+            file_url = request.host_url + '/api/download-frame/' + filename + '/' + file_name
+            file_urls.append(file_url)
 
+    compressed_file = FolderCompressor(frames_folder)
+    zip_path = compressed_file.compress()
+    zip_url = request.host_url + '/api/download-frames/' + filename + '.zip'
+
+    return jsonify({
+        "message": "Video procesado con éxito.",
+        "output_path": '/' + frames_folder,
+        "download_URLs": file_urls,
+        "download_ZIP_URL": zip_url.replace("\\", "/"),
+    })
 
 @api.route('/video-to-video', methods=['POST'])
 def video_to_video():
@@ -81,16 +101,28 @@ def video_to_video():
     if (video_path != video_path_converted):
         os.remove(video_path)
 
-    return jsonify({"message": "Video procesado con éxito.", "video_path": '/' + video_path_converted.replace("\\", "/")})
+    download_url = request.host_url + '/api/download-video/' + filename + '.' + format
+
+    return jsonify({
+        "message": "Video procesado con éxito.",
+        "video_path": '/' + video_path_converted.replace("\\", "/"),
+        "download_url": download_url
+    }), 200
+
+@api.route('/download-frame/<foldername>/<filename>', methods=['GET'])
+def download_frame(foldername, filename):
+    folder = os.path.join('outputs', 'video_to_frames_output', foldername)
+    frame_path = os.path.join(folder, filename)
+    if os.path.exists(frame_path):
+        return send_file(frame_path, as_attachment=True, download_name=f"{foldername}_{filename}")
+    return jsonify({"error": "File not found"}), 404
 
 
 @api.route('/download-frames/<filename>', methods=['GET'])
 def download_frames(filename):
-    frames_folder = os.path.join('outputs', 'video_to_frames_output', filename)
-    
-    if os.path.exists(frames_folder):
-        return jsonify({"frames_folder_path": frames_folder})
-    
+    frames_zip = os.path.join('outputs', 'video_to_frames_output', filename)
+    if os.path.exists(frames_zip):
+        return send_file(frames_zip, as_attachment=True)
     return jsonify({"error": "Folder not found"}), 404
 
 
@@ -100,18 +132,12 @@ def download_video(filename):
     video_path = os.path.join(video_folder, filename)
 
     if os.path.exists(video_path):
-        mime_type, _ = mimetypes.guess_type(video_path)
-
-        return jsonify({
-            "video_path": video_path,
-            "mime_type": mime_type or "unknown"
-        })
-
+        # mime_type, _ = mimetypes.guess_type(video_path)
+        return send_file(video_path, as_attachment=True, download_name=filename)
     return jsonify({"error": "File not found"}), 404
 
 
 # Image Converter - Microservice
-
 @api.route('/image-configuration', methods=['POST'])
 def image_configuration():
     if 'image' not in request.files:
@@ -137,12 +163,15 @@ def image_configuration():
     rotate_angle = request.form.get('rotate', type=int)
     grayscale = request.form.get('grayscale', type=bool)
 
-    output_path = converter.image_convert(resize=(resize_width, resize_height), rotate=rotate_angle, grayscale=grayscale)
-
+    output_path = converter.image_convert(resize=(resize_width, resize_height),
+                                          rotate=rotate_angle, grayscale=grayscale)
     os.remove(image_path)
 
-    return jsonify({"message": "Imagen procesada y guardada con éxito.", "output_path": "/" + output_path.replace("\\", "/")}), 200
-
+    download_url = request.host_url + '/api/download-image/' + os.path.basename(output_path)
+    return jsonify({
+        "message": "Imagen procesada y guardada con éxito.",
+        "output_path": "/" + output_path.replace("\\", "/"),
+        "download_url": download_url}), 200
 
 
 @api.route('/download-image/<filename>', methods=['GET'])
@@ -151,11 +180,7 @@ def download_image(filename):
     image_path = os.path.join(image_folder, filename)
 
     if os.path.exists(image_path):
-
-        return jsonify({
-            "image_path": image_path,
-        })
-
+        return send_file(image_path, as_attachment=True, download_name=filename)
     return jsonify({"error": "File not found"}), 404
 
 
@@ -163,7 +188,6 @@ def download_image(filename):
 
 @api.route('/convert-audio', methods=['POST'])
 def convert_audio():
-
     if 'audio' not in request.files:
         return jsonify({"error": "No se proporcionó el archivo de audio."}), 400
 
@@ -197,13 +221,14 @@ def convert_audio():
     os.remove(audio_path)
 
     if converted_audio_path:
-        return jsonify({"message": "Conversión exitosa.", "converted_audio_path": '/' + converted_audio_path.replace("\\", "/")}), 200
+        return jsonify({"message": "Conversión exitosa.",
+                        "converted_audio_path": '/' + converted_audio_path.replace("\\", "/")
+                        }), 200
     else:
         return jsonify({"error": "Conversión de audio fallida."}), 500
 
 
 # Meda data extractor - Microservice
-
 @api.route('/get-metadata', methods=['POST'])
 def get_metadataaa():
     if 'file' not in request.files:
