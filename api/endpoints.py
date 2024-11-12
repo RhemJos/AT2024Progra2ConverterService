@@ -39,8 +39,7 @@ def video_to_images():
         })
 
     converter = VideoToImagesConverter(file.file_path)
-    converter.convert()
-
+    converter.convert(fps=1)
 
     filename = os.path.splitext(os.path.basename(file.file_path))[0]
     frames_folder = os.path.join('outputs', 'video_to_frames_outputs', filename).replace("\\", "/")
@@ -96,8 +95,6 @@ def video_to_video():
 
     filename = os.path.splitext(os.path.basename(file.file_path))[0]
     video_path_converted = os.path.join('outputs', 'video_to_video_outputs', f"{filename}.{output_format}")
-
-
     download_url = request.host_url + 'api/download-video/' + filename + '.' + output_format
 
     return jsonify({
