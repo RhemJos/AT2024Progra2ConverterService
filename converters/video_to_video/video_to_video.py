@@ -7,27 +7,40 @@ class VideoToVideoConverter(Converter):
     def __init__(self, video_path):
         super().__init__(video_path)
 
-    def convert(self, output_format=None, fps=None, video_codec=None, audio_codec=None, audio_channels=None):
-        # Convierte el video al formato especificado con opciones
+    def convert(self, output_format=None, **kwargs):
         input_format = os.path.splitext(self.file_path)[1][1:].lower()
         temp_output_path = os.path.join('outputs', 'video_to_video_outputs', f"{self.filename}-converted.{output_format}")
         output_path = os.path.join('outputs', 'video_to_video_outputs', f"{self.filename}.{output_format}")
 
-        # Construcción del comando ffmpeg con los parámetros opcionales
-        ffmpeg_command = ffmpeg.input(self.file_path).output(
-            temp_output_path if input_format == output_format else output_path,
-            **({'vcodec': video_codec} if video_codec else {}),
-            **({'acodec': audio_codec} if audio_codec else {}),
-            **({'ac': audio_channels} if audio_channels else {}),
-            **({'r': fps} if fps else {})
-        )
+        # Inicializar comando ffmpeg con entrada
+        ffmpeg_command = ffmpeg.input(self.file_path)
 
-        ffmpeg_command.run(overwrite_output=True)
+        # Agregar parámetros opcionales a la salida
+        output_args = {}
+        if 'fps' in kwargs and kwargs['fps']:
+            output_args['r'] = int(kwargs['fps'])
+        if 'video_codec' in kwargs and kwargs['video_codec']:
+            output_args['vcodec'] = kwargs['video_codec']
+        if 'audio_codec' in kwargs and kwargs['audio_codec']:
+            output_args['acodec'] = kwargs['audio_codec']
+        if 'audio_channels' in kwargs and kwargs['audio_channels']:
+            output_args['ac'] = int(kwargs['audio_channels'])
 
-        # Renombrado del archivo temporal al final si el formato de entrada y salida son iguales
-        if input_format == output_format:
-            if os.path.exists(output_path):
-                os.remove(output_path)
-            os.rename(temp_output_path, output_path)
+        # Construcción del comando ffmpeg con los parámetros opcionales en una sola salida
+        ffmpeg_command = ffmpeg_command.output(temp_output_path if input_format == output_format else output_path, **output_args)
 
-        return output_path
+        try:
+            # Ejecución del comando ffmpeg
+            ffmpeg_command.run(overwrite_output=True)
+
+            # Renombrado del archivo temporal si los formatos coinciden
+            if input_format == output_format:
+                if os.path.exists(output_path):
+                    os.remove(output_path)
+                os.rename(temp_output_path, output_path)
+
+            return output_path
+
+        except ffmpeg.Error as e:
+            print(f"Error al ejecutar el comando ffmpeg: {e.stderr.decode('utf8')}")
+            raise

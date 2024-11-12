@@ -56,12 +56,11 @@ def video_to_images():
 
 @api.route('/video-to-video', methods=['POST'])
 def video_to_video():
-    if 'file' not in request.files:
-        return jsonify({"error": "No se ha enviado ningun 'file' en la solicitud."})
-
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({"error": "No se ha seleccionado ningún archivo."})
+    try:
+        # Guardar el archivo utilizando la función save_file
+        video_path = save_file(request, 'file', 'video_to_video_outputs', valid_formats=["mp4", "mov", "avi", "mkv", "flv", "webm", "ogg", "wmv"])
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
 
     fps = request.form.get('fps')
     output_format = request.form.get('format')
@@ -73,11 +72,6 @@ def video_to_video():
     validation_errors = VideoValidator.validate(output_format, vcodec, acodec, fps, audio_channels)
     if validation_errors:
         return jsonify({"error": validation_errors}), 400
-
-    video_folder = os.path.join('outputs', 'video_to_video_outputs')
-    os.makedirs(video_folder, exist_ok=True)
-    video_path = os.path.join(video_folder, file.filename)
-    file.save(video_path)
 
     # Conversión del video
     converter = VideoToVideoConverter(video_path)
@@ -156,11 +150,12 @@ def image_configuration():
         if filter in request.form:
             filters.append(filter)
     try:
-        output_path = converter.convert(resize=resize_measures, resize_type=resize_type, format=format, 
+        output_path = converter.convert(resize=resize_measures, resize_type=resize_type, output_format=format, 
                                         angle=rotate_angle, grayscale=grayscale, filters=filters)
     except ValueError as e:
         return jsonify({"message": e}), 400
-
+    finally:
+        os.remove(image_path)
     download_url = request.host_url + '/api/download-image/' + os.path.basename(output_path)
     return jsonify({
         "message": "Imagen procesada y guardada con éxito.",
@@ -218,16 +213,28 @@ def convert_audio():
     except Exception as e:
         os.remove(output_path)
         return jsonify({"error": "Conversión de audio fallida."}), 500
-    
+
     os.remove(output_path)
 
+    download_url = (request.host_url + 'api/download-audio/'
+                    + os.path.splitext(os.path.basename(output_path))[0] + '.' + output_format)
+
     if converted_output_path:
-        return jsonify({"message": "Conversión exitosa.",
-                        "converted_audio_path": '/' + converted_output_path.replace("\\", "/")
+        return jsonify({"message": "Audio convertido con éxito.",
+                        "output_path": '/' + converted_output_path.replace("\\", "/"),
+                        "download_URL": download_url
                         }), 200
     else:
         return jsonify({"error": "Conversión de audio fallida."}), 500
 
+@api.route('/download-audio/<filename>', methods=['GET'])
+def download_audio(filename):
+    audio_folder = os.path.join('outputs', 'audio_converted_outputs')
+    audio_path = os.path.join(audio_folder, filename)
+
+    if os.path.exists(audio_path):
+        return send_file(audio_path, as_attachment=True, download_name=filename)
+    return jsonify({"error": "File not found"}), 404
 
 # Meda data extractor - Microservice
 @api.route('/get-metadata', methods=['POST'])
