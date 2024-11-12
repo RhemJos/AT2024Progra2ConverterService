@@ -66,6 +66,7 @@ def get_or_save(file_path):
 
     existing_file = File.query.filter_by(checksum=checksum).first()
     if existing_file:
+        os.remove(file_path)
         return True,existing_file
     else:
         return False,save_db(file_path, checksum)
