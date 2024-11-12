@@ -36,7 +36,7 @@ def video_to_images():
         return jsonify({"message": "Video ya existe.", "output_path": '/' + new_path.replace("\\", "/")})
 
     converter = VideoToImagesConverter(new_path)
-    converter.convert()
+    converter.convert(fps=1)
 
     os.remove(new_path)
 
