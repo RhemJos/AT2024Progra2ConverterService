@@ -15,8 +15,8 @@ class AudioConverter(Converter):
 
         # If the file already exists do not convert
         if os.path.exists(output_path):
-            print(f'El archivo {output_path} ya existe.')
-            return output_path
+            print(f'El archivo {output_path} ya existe y será reemplazado.')
+            os.remove(output_path)
 
         # Set options
         options = self._get_audio_options(**kwargs)
