@@ -38,8 +38,6 @@ def video_to_images():
     converter = VideoToImagesConverter(new_path)
     converter.convert(fps=1)
 
-    os.remove(new_path)
-
     filename = os.path.splitext(os.path.basename(new_path))[0]
     frames_folder = os.path.join('outputs', 'video_to_frames_outputs', filename).replace("\\", "/")
 
@@ -84,9 +82,6 @@ def video_to_video():
 
     filename = os.path.splitext(os.path.basename(video_path))[0]
     video_path_converted = os.path.join('outputs', 'video_to_video_outputs', f"{filename}.{output_format}")
-
-    if (video_path != video_path_converted):
-        os.remove(video_path)
 
     download_url = request.host_url + 'api/download-video/' + filename + '.' + output_format
 
