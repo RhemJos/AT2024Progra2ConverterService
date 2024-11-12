@@ -149,11 +149,12 @@ def image_configuration():
         if filter in request.form:
             filters.append(filter)
     try:
-        output_path = converter.convert(resize=resize_measures, resize_type=resize_type, format=format, 
+        output_path = converter.convert(resize=resize_measures, resize_type=resize_type, output_format=format, 
                                         angle=rotate_angle, grayscale=grayscale, filters=filters)
     except ValueError as e:
         return jsonify({"message": e}), 400
-
+    finally:
+        os.remove(image_path)
     download_url = request.host_url + '/api/download-image/' + os.path.basename(output_path)
     return jsonify({
         "message": "Imagen procesada y guardada con éxito.",
@@ -180,13 +181,15 @@ def convert_audio():
     channels = request.form.get('channels')
     sample_rate = request.form.get('sample_rate')
     volume = request.form.get('volume')
-
+    language_channel = request.form.get('language_channel')
+    speed = request.form.get('speed')
+ 
     try:
-        audio_path = save_file(request, 'audio', 'audio_converted_outputs')
+        output_path = save_file(request, 'audio', 'audio_converted_outputs')
     except ValueError as e:
         return jsonify({"error": e.args[0]}), 400
 
-    converter = AudioConverter(audio_path)
+    converter = AudioConverter(output_path)
 
     kwargs = {}
     if bit_rate:
@@ -197,18 +200,38 @@ def convert_audio():
         kwargs['sample_rate'] = sample_rate
     if volume:
         kwargs['volume'] = volume
+    if language_channel:
+        kwargs['language_channel'] = language_channel
+    if speed:
+        kwargs['speed'] = speed
 
-    converted_audio_path = converter.convert(output_format, **kwargs)
+    try:
+        converted_output_path = converter.convert(output_format, **kwargs)
+    except Exception as e:
+        os.remove(output_path)
+        return jsonify({"error": "Conversión de audio fallida."}), 500
 
-    os.remove(audio_path)
+    os.remove(output_path)
 
-    if converted_audio_path:
-        return jsonify({"message": "Conversión exitosa.",
-                        "converted_audio_path": '/' + converted_audio_path.replace("\\", "/")
+    download_url = (request.host_url + 'api/download-audio/'
+                    + os.path.splitext(os.path.basename(output_path))[0] + '.' + output_format)
+
+    if converted_output_path:
+        return jsonify({"message": "Audio convertido con éxito.",
+                        "output_path": '/' + converted_output_path.replace("\\", "/"),
+                        "download_URL": download_url
                         }), 200
     else:
         return jsonify({"error": "Conversión de audio fallida."}), 500
 
+@api.route('/download-audio/<filename>', methods=['GET'])
+def download_audio(filename):
+    audio_folder = os.path.join('outputs', 'audio_converted_outputs')
+    audio_path = os.path.join(audio_folder, filename)
+
+    if os.path.exists(audio_path):
+        return send_file(audio_path, as_attachment=True, download_name=filename)
+    return jsonify({"error": "File not found"}), 404
 
 # Meda data extractor - Microservice
 @api.route('/get-metadata', methods=['POST'])
