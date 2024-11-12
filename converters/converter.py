@@ -6,6 +6,7 @@ class Converter(ABC):
     def __init__(self, file_path):
         self.file_path = file_path
         self.filename = os.path.splitext(os.path.basename(file_path))[0]
+        self.extension = file_path.split('.')[-1].lower()
     
     @abstractmethod
     def convert(self, output_format=None, **kwargs):
