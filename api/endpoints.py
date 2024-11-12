@@ -1,7 +1,8 @@
 import os
 from flask import Blueprint, request, jsonify, send_file
 from sqlalchemy.sql.coercions import expect
-from converters.video_to_images.video_converter import VideoConverter
+from converters.video_to_images.video_to_images import VideoToImagesConverter
+from converters.video_to_video.video_to_video import VideoToVideoConverter
 from converters.image_to_image.image_converter import ImageConverter, IMAGE_FILTERS, VALID_IMAGE_EXTENSIONS
 from converters.audio_to_audio.audio_converter import AudioConverter
 from converters.extractor.metadataextractor import MetadataExtractor
@@ -21,7 +22,7 @@ api = Blueprint('api', __name__)
 @api.route('/video-to-images', methods=['POST'])
 def video_to_images():  
     try:
-        video_path = save_file(request, 'file', 'video_to_frames_output')
+        video_path = save_file(request, 'file', 'video_to_frames_outputs')
     except ValueError as e:
         return jsonify({"error": e.args[0]}), 400
 
@@ -34,13 +35,13 @@ def video_to_images():
         os.remove(video_path)
         return jsonify({"message": "Video ya existe.", "output_path": '/' + new_path.replace("\\", "/")})
 
-    converter = VideoConverter(new_path)
-    converter.to_frames()
+    converter = VideoToImagesConverter(new_path)
+    converter.convert()
 
     os.remove(new_path)
 
     filename = os.path.splitext(os.path.basename(new_path))[0]
-    frames_folder = os.path.join('outputs', 'video_to_frames_output', filename).replace("\\", "/")
+    frames_folder = os.path.join('outputs', 'video_to_frames_outputs', filename).replace("\\", "/")
 
     compressed_file = FolderCompressor(frames_folder)
     zip_path = compressed_file.compress()
@@ -78,8 +79,8 @@ def video_to_video():
     file.save(video_path)
 
     # Conversión del video
-    converter = VideoConverter(video_path)
-    converter.to_format(
+    converter = VideoToVideoConverter(video_path)
+    converter.convert(
         output_format=output_format,
         fps=fps,
         video_codec=vcodec,
@@ -93,7 +94,7 @@ def video_to_video():
     if (video_path != video_path_converted):
         os.remove(video_path)
 
-    download_url = request.host_url + '/api/download-video/' + filename + '.' + format
+    download_url = request.host_url + 'api/download-video/' + filename + '.' + output_format
 
     return jsonify({
         "message": "Video procesado con éxito.",
@@ -185,13 +186,15 @@ def convert_audio():
     channels = request.form.get('channels')
     sample_rate = request.form.get('sample_rate')
     volume = request.form.get('volume')
-
+    language_channel = request.form.get('language_channel')
+    speed = request.form.get('speed')
+ 
     try:
-        audio_path = save_file(request, 'audio', 'audio_converted_outputs')
+        output_path = save_file(request, 'audio', 'audio_converted_outputs')
     except ValueError as e:
         return jsonify({"error": e.args[0]}), 400
 
-    converter = AudioConverter(audio_path)
+    converter = AudioConverter(output_path)
 
     kwargs = {}
     if bit_rate:
@@ -202,14 +205,22 @@ def convert_audio():
         kwargs['sample_rate'] = sample_rate
     if volume:
         kwargs['volume'] = volume
+    if language_channel:
+        kwargs['language_channel'] = language_channel
+    if speed:
+        kwargs['speed'] = speed
 
-    converted_audio_path = converter.convert(output_format, **kwargs)
+    try:
+        converted_output_path = converter.convert(output_format, **kwargs)
+    except Exception as e:
+        os.remove(output_path)
+        return jsonify({"error": "Conversión de audio fallida."}), 500
+    
+    os.remove(output_path)
 
-    os.remove(audio_path)
-
-    if converted_audio_path:
+    if converted_output_path:
         return jsonify({"message": "Conversión exitosa.",
-                        "converted_audio_path": '/' + converted_audio_path.replace("\\", "/")
+                        "converted_audio_path": '/' + converted_output_path.replace("\\", "/")
                         }), 200
     else:
         return jsonify({"error": "Conversión de audio fallida."}), 500
