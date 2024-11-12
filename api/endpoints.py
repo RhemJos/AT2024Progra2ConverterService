@@ -213,13 +213,13 @@ def convert_audio():
     os.remove(output_path)
 
     download_url = (request.host_url + 'api/download-audio/'
-                    + os.path.splitext(os.path.basename(audio_path))[0] + '.' + output_format)
+                    + os.path.splitext(os.path.basename(output_path))[0] + '.' + output_format)
 
-    os.remove(audio_path)
+    os.remove(output_path)
 
-    if converted_audio_path:
+    if converted_output_path:
         return jsonify({"message": "Audio convertido con éxito.",
-                        "output_path": '/' + converted_audio_path.replace("\\", "/"),
+                        "output_path": '/' + converted_output_path.replace("\\", "/"),
                         "download_URL": download_url
                         }), 200
     else:
