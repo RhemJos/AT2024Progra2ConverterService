@@ -180,13 +180,15 @@ def convert_audio():
     channels = request.form.get('channels')
     sample_rate = request.form.get('sample_rate')
     volume = request.form.get('volume')
-
+    language_channel = request.form.get('language_channel')
+    speed = request.form.get('speed')
+ 
     try:
-        audio_path = save_file(request, 'audio', 'audio_converted_outputs')
+        output_path = save_file(request, 'audio', 'audio_converted_outputs')
     except ValueError as e:
         return jsonify({"error": e.args[0]}), 400
 
-    converter = AudioConverter(audio_path)
+    converter = AudioConverter(output_path)
 
     kwargs = {}
     if bit_rate:
@@ -197,8 +199,18 @@ def convert_audio():
         kwargs['sample_rate'] = sample_rate
     if volume:
         kwargs['volume'] = volume
+    if language_channel:
+        kwargs['language_channel'] = language_channel
+    if speed:
+        kwargs['speed'] = speed
 
-    converted_audio_path = converter.convert(output_format, **kwargs)
+    try:
+        converted_output_path = converter.convert(output_format, **kwargs)
+    except Exception as e:
+        os.remove(output_path)
+        return jsonify({"error": "Conversión de audio fallida."}), 500
+    
+    os.remove(output_path)
 
     download_url = (request.host_url + 'api/download-audio/'
                     + os.path.splitext(os.path.basename(audio_path))[0] + '.' + output_format)
