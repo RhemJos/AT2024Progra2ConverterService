@@ -60,7 +60,7 @@ def video_to_video():
         video_path = save_file(request, 'file', 'video_to_video_outputs', valid_formats=["mp4", "mov", "avi", "mkv", "flv", "webm", "ogg", "wmv"])
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
-    print(" ")
+
     fps = request.form.get('fps')
     output_format = request.form.get('format')
     vcodec = request.form.get('vcodec')
