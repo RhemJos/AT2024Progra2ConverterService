@@ -187,18 +187,13 @@ def convert_audio():
     volume = request.form.get('volume')
     language_channel = request.form.get('language_channel')
     speed = request.form.get('speed')
-    #audio_folder = os.path.join('outputs', 'audio_converted_outputs')
-    '''os.makedirs(audio_folder, exist_ok=True)
-
-    audio_path = os.path.join('outputs', 'audio_converted_outputs', audio_file.filename)
-    audio_file.save(audio_path)'''
-  
+ 
     try:
-        audio_path = save_file(request, 'audio', 'audio_converted_outputs')
+        output_path = save_file(request, 'audio', 'audio_converted_outputs')
     except ValueError as e:
         return jsonify({"error": e.args[0]}), 400
 
-    converter = AudioConverter(audio_path)
+    converter = AudioConverter(output_path)
 
     kwargs = {}
     if bit_rate:
@@ -214,13 +209,17 @@ def convert_audio():
     if speed:
         kwargs['speed'] = speed
 
-    converted_audio_path = converter.convert(output_format, **kwargs)
+    try:
+        converted_output_path = converter.convert(output_format, **kwargs)
+    except Exception as e:
+        os.remove(output_path)
+        return jsonify({"error": "Conversión de audio fallida."}), 500
+    
+    os.remove(output_path)
 
-    os.remove(audio_path)
-
-    if converted_audio_path:
+    if converted_output_path:
         return jsonify({"message": "Conversión exitosa.",
-                        "converted_audio_path": '/' + converted_audio_path.replace("\\", "/")
+                        "converted_audio_path": '/' + converted_output_path.replace("\\", "/")
                         }), 200
     else:
         return jsonify({"error": "Conversión de audio fallida."}), 500
