@@ -149,11 +149,12 @@ def image_configuration():
         if filter in request.form:
             filters.append(filter)
     try:
-        output_path = converter.convert(resize=resize_measures, resize_type=resize_type, format=format, 
+        output_path = converter.convert(resize=resize_measures, resize_type=resize_type, output_format=format, 
                                         angle=rotate_angle, grayscale=grayscale, filters=filters)
     except ValueError as e:
         return jsonify({"message": e}), 400
-
+    finally:
+        os.remove(image_path)
     download_url = request.host_url + '/api/download-image/' + os.path.basename(output_path)
     return jsonify({
         "message": "Imagen procesada y guardada con éxito.",
