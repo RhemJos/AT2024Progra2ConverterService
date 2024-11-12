@@ -209,6 +209,7 @@ def convert_audio():
     try:
         converted_output_path = converter.convert(output_format, **kwargs)
     except AudioConversionError as error:
+        os.remove(output_path)
         return jsonify({"error": error.get_message()}), error.get_status_code()
     except Exception as e:
         os.remove(output_path)
@@ -217,7 +218,7 @@ def convert_audio():
     os.remove(output_path)
 
     download_url = (request.host_url + 'api/download-audio/'
-                    + os.path.splitext(os.path.basename(output_path))[0] + '.' + output_format)
+                    + os.path.splitext(os.path.basename(converted_output_path))[0] + '.' + output_format)
 
     if converted_output_path:
         return jsonify({"message": "Audio convertido con éxito.",
