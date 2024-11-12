@@ -7,7 +7,7 @@ class VideoToVideoConverter(Converter):
     def __init__(self, video_path):
         super().__init__(video_path)
 
-    def to_format(self, output_format=None, fps=None, video_codec=None, audio_codec=None, audio_channels=None):
+    def convert(self, output_format=None, fps=None, video_codec=None, audio_codec=None, audio_channels=None):
         # Convierte el video al formato especificado con opciones
         input_format = os.path.splitext(self.file_path)[1][1:].lower()
         temp_output_path = os.path.join('outputs', 'video_to_video_outputs', f"{self.filename}-converted.{output_format}")

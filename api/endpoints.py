@@ -104,7 +104,7 @@ def video_to_video():
     if (video_path != video_path_converted):
         os.remove(video_path)
 
-    download_url = request.host_url + '/api/download-video/' + filename + '.' + format
+    download_url = request.host_url + 'api/download-video/' + filename + '.' + output_format
 
     return jsonify({
         "message": "Video procesado con éxito.",

@@ -13,7 +13,7 @@ class VideoToImagesConverter(Converter):
         os.makedirs(frames_folder, exist_ok=True)
 
         if output_path is None:
-            output_path = os.path.join(frames_folder, '%04d.jpg')
+            output_path = os.path.join(frames_folder, '%d.jpg')
 
         # Comando ffmpeg para extraer los fotogramas del video
         ffmpeg.input(self.file_path).filter('fps', fps=fps).output(output_path).run(overwrite_output=True)
