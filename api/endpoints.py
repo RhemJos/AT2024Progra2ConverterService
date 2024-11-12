@@ -55,12 +55,11 @@ def video_to_images():
 
 @api.route('/video-to-video', methods=['POST'])
 def video_to_video():
-    if 'file' not in request.files:
-        return jsonify({"error": "No se ha enviado ningun 'file' en la solicitud."})
-
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({"error": "No se ha seleccionado ningún archivo."})
+    try:
+        # Guardar el archivo utilizando la función save_file
+        video_path = save_file(request, 'file', 'video_to_video_outputs', valid_formats=["mp4", "mov", "avi", "mkv", "flv", "webm", "ogg", "wmv"])
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
 
     fps = request.form.get('fps')
     output_format = request.form.get('format')
@@ -72,11 +71,6 @@ def video_to_video():
     validation_errors = VideoValidator.validate(output_format, vcodec, acodec, fps, audio_channels)
     if validation_errors:
         return jsonify({"error": validation_errors}), 400
-
-    video_folder = os.path.join('outputs', 'video_to_video_outputs')
-    os.makedirs(video_folder, exist_ok=True)
-    video_path = os.path.join(video_folder, file.filename)
-    file.save(video_path)
 
     # Conversión del video
     converter = VideoToVideoConverter(video_path)
