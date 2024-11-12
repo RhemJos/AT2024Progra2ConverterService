@@ -30,3 +30,14 @@ class Formatter:
         return dict
 
 
+    #Returns a dict containing all needed arguments for a function. 
+    #Ensures all arguments are present in the args returned dict. 
+    #In case the arg already existed in func_args the values are ketp, otherwise
+    #the arg gets added with a default value determined in the parameters definition
+    # Parameters -> {"parameter_name" : default_value, ...}
+    # Func_args -> kwargs
+def get_args(parameters, func_args):
+    args = {}
+    for parameter_definition in parameters:
+        args[parameter_definition] = func_args[parameter_definition] if parameter_definition in func_args else parameters[parameter_definition]
+    return args
