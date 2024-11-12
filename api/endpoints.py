@@ -200,15 +200,26 @@ def convert_audio():
 
     converted_audio_path = converter.convert(output_format, **kwargs)
 
+    download_url = (request.host_url + 'api/download-audio/'
+                    + os.path.splitext(os.path.basename(audio_path))[0] + '.' + output_format)
+
     os.remove(audio_path)
 
     if converted_audio_path:
-        return jsonify({"message": "Conversión exitosa.",
-                        "converted_audio_path": '/' + converted_audio_path.replace("\\", "/")
+        return jsonify({"message": "Audio convertido con éxito.",
+                        "output_path": '/' + converted_audio_path.replace("\\", "/"),
+                        "download_URL": download_url
                         }), 200
     else:
         return jsonify({"error": "Conversión de audio fallida."}), 500
 
+@api.route('/download-audio/<filename>', methods=['GET'])
+def download_audio(filename):
+    audio_folder = os.path.join('outputs', 'audio_converted_outputs')
+    audio_path = os.path.join(audio_folder, filename)
+    if os.path.exists(audio_path):
+        return send_file(audio_path, as_attachment=True, download_name=filename)
+    return jsonify({"error": "File not found"}),404
 
 # Meda data extractor - Microservice
 @api.route('/get-metadata', methods=['POST'])
