@@ -8,6 +8,7 @@ from converters.audio_to_audio.audio_converter import AudioConverter
 from converters.extractor.metadataextractor import MetadataExtractor
 from validators.VideoValidator import VideoValidator
 from converters.compressor.compressor import FolderCompressor
+from converters.audio_to_audio.audio_exception import AudioConversionError
 from models import db, File
 from PIL import Image
 import mimetypes
@@ -212,6 +213,8 @@ def convert_audio():
 
     try:
         converted_output_path = converter.convert(output_format, **kwargs)
+    except AudioConversionError as error:
+        return jsonify({"error": error.get_message()}), error.get_status_code()
     except Exception as e:
         os.remove(output_path)
         return jsonify({"error": "Conversión de audio fallida."}), 500
