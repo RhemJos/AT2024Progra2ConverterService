@@ -166,8 +166,7 @@ def image_configuration():
                                         angle=rotate_angle, grayscale=grayscale, filters=filters)
     except ValueError as e:
         return jsonify({"message": e}), 400
-    finally:
-        os.remove(file.file_path)
+
     download_url = request.host_url + '/api/download-image/' + os.path.basename(output_path)
     return jsonify({
         "message": "Imagen procesada y guardada con éxito.",
@@ -227,10 +226,7 @@ def convert_audio():
     try:
         converted_output_path = converter.convert(output_format, **kwargs)
     except Exception as e:
-        os.remove(file.file_path)
         return jsonify({"error": "Conversión de audio fallida."}), 500
-
-    os.remove(file.file_path)
 
     download_url = (request.host_url + 'api/download-audio/'
                     + os.path.splitext(os.path.basename(file.file_path))[0] + '.' + output_format)
