@@ -2,6 +2,7 @@ from PIL import Image, ImageFilter, ImageOps
 import os
 from converters.converter import Converter
 from utils import get_args
+from exceptions.image_convert_exception import ImageConvertError
 
 IMAGE_FILTERS = ("BLUR", "CONTOUR", "DETAIL", "EDGE_ENHANCE", "EDGE_ENHANCE_MORE", "EMBOSS", 
             "FIND_EDGES", "SHARPEN", "SMOOTH", "SMOOTH_MORE")
@@ -26,11 +27,11 @@ class ImageConverter(Converter):
         try:
             self.img = Image.open(self.file_path)
         except (IOError):
-            raise ValueError("El archivo no es una imagen valida")
+            raise ImageConvertError("El archivo no es una imagen valida", 400)
 
     def resize(self, measures, resize_type=None):
         if (len(measures) != 2):
-            raise ValueError("Resize debe ser de tipo (ancho, alto)")
+            raise ImageConvertError("Resize debe ser de tipo (ancho, alto)", 400, { 'measures': measures })
         width = measures[0]
         height = measures[1]
         if not (width):
@@ -45,7 +46,7 @@ class ImageConverter(Converter):
         
     def preset_resize(self, measures, resize_type):
         if resize_type not in VALID_RESIZE_TYPES:
-            raise ValueError("El tipo de resize ingresado no se reconoce")
+            raise ImageConvertError("El tipo de resize ingresado no se reconoce", 400, {"resize_type" : resize_type})
         match resize_type:
             case "THUMBNAIL":
                 self.img.thumbnail(measures)      
@@ -90,7 +91,7 @@ class ImageConverter(Converter):
             self.resize(resize, resize_type)
         if output_format:
             if output_format not in VALID_IMAGE_EXTENSIONS:
-                raise ValueError("Formato de conversión de imagen no soportado.")
+                raise ImageConvertError("Formato de conversión de imagen no soportado.", 400, {"output_format" :output_format})
             else:
                 self.extension = output_format
         

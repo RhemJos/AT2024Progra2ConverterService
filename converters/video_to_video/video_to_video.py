@@ -1,7 +1,9 @@
 import ffmpeg
 import os
 from converters.converter import Converter
-
+from validators.VideoValidator import VideoValidator
+from exceptions.video_convert_exception import VideoConvertError
+from utils import get_args
 
 class VideoToVideoConverter(Converter):
     def __init__(self, video_path):
@@ -25,6 +27,11 @@ class VideoToVideoConverter(Converter):
             output_args['acodec'] = kwargs['audio_codec']
         if 'audio_channels' in kwargs and kwargs['audio_channels']:
             output_args['ac'] = int(kwargs['audio_channels'])
+        
+        # Validación de parámetros
+        validation_errors = VideoValidator.validate(output_format=output_format, **output_args)
+        if validation_errors:
+            raise VideoConvertError( str(validation_errors), 400 )
 
         # Construcción del comando ffmpeg con los parámetros opcionales en una sola salida
         ffmpeg_command = ffmpeg_command.output(temp_output_path if input_format == output_format else output_path, **output_args)
