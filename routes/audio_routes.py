@@ -38,7 +38,7 @@ def convert_audio():
     try:
         file_in_db, file = get_or_save(output_path)
     except Exception as e:
-        return jsonify({"error": f"No se pudo guardar el archivo en DB: {str(e)}"})
+        return jsonify({"error": f"Failed to save file to DB: {str(e)}"})
 
     converter = AudioConverter(file.file_path)
 
@@ -59,15 +59,15 @@ def convert_audio():
     try:
         converted_output_path = converter.convert(output_format, **kwargs)
     except Exception as e:
-        return jsonify({"error": "Conversión de audio fallida."}), 500
+        return jsonify({"error": "Audio conversion failed."}), 500
 
     download_url = (request.host_url + 'api/download-audio/'
                     + os.path.splitext(os.path.basename(file.file_path))[0] + '.' + output_format)
 
     if converted_output_path:
-        return jsonify({"message": "Audio convertido con éxito.",
+        return jsonify({"message": "Audio converted successfully.",
                         "output_path": '/' + converted_output_path.replace("\\", "/"),
                         "download_URL": download_url
                         }), 200
     else:
-        return jsonify({"error": "Conversión de audio fallida."}), 500
+        return jsonify({"error": "Audio conversion failed."}), 500
