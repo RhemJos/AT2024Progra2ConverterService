@@ -1,5 +1,4 @@
 from flask import Flask
-# from models import db, FilePath
 from models import db
 from routes import test_route
 from api.endpoints import api
@@ -8,8 +7,6 @@ from os import environ
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DB_URL')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///file_paths.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 

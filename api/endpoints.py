@@ -1,6 +1,5 @@
 import os
 from flask import Blueprint, request, jsonify, send_file
-from sqlalchemy.sql.coercions import expect
 from converters.video_to_images.video_to_images import VideoToImagesConverter
 from converters.video_to_video.video_to_video import VideoToVideoConverter
 from converters.image_to_image.image_converter import ImageConverter, IMAGE_FILTERS, VALID_IMAGE_EXTENSIONS
@@ -8,11 +7,10 @@ from converters.audio_to_audio.audio_converter import AudioConverter
 from converters.extractor.metadataextractor import MetadataExtractor
 from validators.VideoValidator import VideoValidator
 from converters.compressor.compressor import FolderCompressor
-from models import db, File
+from helpers.endpoints_helper import save_file, get_or_save, update
 from PIL import Image
 import mimetypes
 import io
-import hashlib
 
 
 api = Blueprint('api', __name__)
@@ -27,19 +25,28 @@ def video_to_images():
         return jsonify({"error": e.args[0]}), 400
 
     try:
-        file_in_db, new_path = get_or_save(video_path)
+        file_in_db, file = get_or_save(video_path)
     except Exception as e:
         return jsonify({"error": f"No se pudo guardar el archivo en DB: {str(e)}"})
-    
-    if file_in_db:
-        os.remove(video_path)
-        return jsonify({"message": "Video ya existe.", "output_path": '/' + new_path.replace("\\", "/")})
 
-    converter = VideoToImagesConverter(new_path)
+    if file_in_db and file.output_path:
+        os.remove(video_path)
+        zip_url = request.host_url + '/api/download-frames/' + file.checksum + '.zip'
+        return jsonify({
+            "message": "Video ya existe en Base de Datos.",
+            "output_path": '/' + file.output_path,
+            "download_URL": zip_url.replace("\\", "/"),
+        })
+
+    converter = VideoToImagesConverter(file.file_path)
     converter.convert(fps=1)
 
-    filename = os.path.splitext(os.path.basename(new_path))[0]
+    filename = os.path.splitext(os.path.basename(file.file_path))[0]
     frames_folder = os.path.join('outputs', 'video_to_frames_outputs', filename).replace("\\", "/")
+
+    # Update output_path in DB
+    file.output_path = frames_folder
+    update(file)
 
     compressed_file = FolderCompressor(frames_folder)
     zip_path = compressed_file.compress()
@@ -70,8 +77,14 @@ def video_to_video():
     if validation_errors:
         return jsonify({"error": validation_errors}), 400
 
+    # Save or retrieve from DB
+    try:
+        file_in_db, file = get_or_save(video_path)
+    except Exception as e:
+        return jsonify({"error": f"No se pudo guardar el archivo en DB: {str(e)}"})
+
     # Conversión del video
-    converter = VideoToVideoConverter(video_path)
+    converter = VideoToVideoConverter(file.file_path)
     converter.convert(
         output_format=output_format,
         fps=fps,
@@ -80,9 +93,8 @@ def video_to_video():
         audio_channels=audio_channels
     )
 
-    filename = os.path.splitext(os.path.basename(video_path))[0]
+    filename = os.path.splitext(os.path.basename(file.file_path))[0]
     video_path_converted = os.path.join('outputs', 'video_to_video_outputs', f"{filename}.{output_format}")
-
     download_url = request.host_url + 'api/download-video/' + filename + '.' + output_format
 
     return jsonify({
@@ -126,8 +138,14 @@ def image_configuration():
     except ValueError as e:
         return jsonify({"error": e.args[0]}), 400
 
+    # Save or retrieve from DB
     try:
-        converter = ImageConverter(image_path)
+        file_in_db, file = get_or_save(image_path)
+    except Exception as e:
+        return jsonify({"error": f"No se pudo guardar el archivo en DB: {str(e)}"})
+
+    try:
+        converter = ImageConverter(file.file_path)
     except ValueError:
         return jsonify({"error": "No fue posible cargar la imagen"}), 400
 
@@ -148,8 +166,7 @@ def image_configuration():
                                         angle=rotate_angle, grayscale=grayscale, filters=filters)
     except ValueError as e:
         return jsonify({"message": e}), 400
-    finally:
-        os.remove(image_path)
+
     download_url = request.host_url + '/api/download-image/' + os.path.basename(output_path)
     return jsonify({
         "message": "Imagen procesada y guardada con éxito.",
@@ -184,7 +201,13 @@ def convert_audio():
     except ValueError as e:
         return jsonify({"error": e.args[0]}), 400
 
-    converter = AudioConverter(output_path)
+    # Save or retrieve from DB
+    try:
+        file_in_db, file = get_or_save(output_path)
+    except Exception as e:
+        return jsonify({"error": f"No se pudo guardar el archivo en DB: {str(e)}"})
+
+    converter = AudioConverter(file.file_path)
 
     kwargs = {}
     if bit_rate:
@@ -203,13 +226,10 @@ def convert_audio():
     try:
         converted_output_path = converter.convert(output_format, **kwargs)
     except Exception as e:
-        os.remove(output_path)
         return jsonify({"error": "Conversión de audio fallida."}), 500
 
-    os.remove(output_path)
-
     download_url = (request.host_url + 'api/download-audio/'
-                    + os.path.splitext(os.path.basename(output_path))[0] + '.' + output_format)
+                    + os.path.splitext(os.path.basename(file.file_path))[0] + '.' + output_format)
 
     if converted_output_path:
         return jsonify({"message": "Audio convertido con éxito.",
@@ -242,75 +262,3 @@ def get_metadata():
     os.remove(file_path)
 
     return jsonify(result)
-
-
-# Extracts file from request, check its extension(optional) and saves it in the corresponding dir
-def save_file(request, file_type, dir, valid_formats=None):
-    if file_type not in request.files:
-        raise ValueError(f"No se ha enviado ningún archivo de {file_type} en la solicitud.")
-
-    file = request.files[file_type]
-    if file.filename == '':
-        raise ValueError("No se ha seleccionado ningún archivo.")
-
-    if valid_formats:
-        extension = file.filename.split('.')[-1].lower()
-        if extension not in valid_formats:
-            raise ValueError(f"Formato de {file_type} no soportado.")
-
-    file_folder = os.path.join('outputs', dir)
-    os.makedirs(file_folder, exist_ok=True)
-
-    file_path = os.path.join('outputs', dir, file.filename)
-    file.save(file_path)
-
-    return file_path
-
-
-# search file in db, saves file if it does not exist, returns a tuple (file_in_db, file_path) where:
-# file_in_db is a boolean that indicates if the files already exists in db or not
-# if the file exists file_path is the path to the frames, otherwise points to the video renamed with its checksum
-def get_or_save(file_path):
-
-    if not os.path.isfile(file_path):
-        raise FileNotFoundError(f"El archivo {file_path} no existe.")
-
-    try:
-        checksum= generate_checksum(file_path)
-    except Exception as e:
-        raise IOError(f"Se produjo un error al generar el checksum del archivo {file_path}: {str(e)}")
-
-    existing_file = File.query.filter_by(checksum=checksum).first()
-    if existing_file:
-        return True,existing_file.output_path
-
-    file_extension= file_path.split('.')[-1]
-    new_file = File(file_extension=file_extension,checksum=checksum)
-
-    original_folder = os.path.dirname(file_path)
-    new_path = os.path.join(original_folder, new_file.checksum+'.'+new_file.file_extension)
-    os.rename(file_path,new_path) # rename file to its checksum
-
-    new_file.output_path=os.path.join(original_folder, new_file.checksum)
-    new_file.file_path = new_path # updates the file object to save in db
-
-    try:
-        db.session.add(new_file)
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        raise ConnectionError(f"Se produjo un error al guardar el archivo en  Base de Datos: {str(e)}")
-    return False,new_path
-
-
-def generate_checksum(filename):
-    h  = hashlib.sha256()
-    b  = bytearray(2**18)
-    mv = memoryview(b)
-    with open(filename, 'rb', buffering=0) as f:
-        while n := f.readinto(mv):
-            h.update(mv[:n])
-    return h.hexdigest()
-
-
-
