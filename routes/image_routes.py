@@ -13,6 +13,7 @@
 from flask import Blueprint, request, jsonify
 from helpers.endpoints_helper import save_file, get_or_save
 from converters.image_to_image.image_converter import ImageConverter, IMAGE_FILTERS, VALID_IMAGE_EXTENSIONS
+import os
 
 image_blueprint = Blueprint('image_routes', __name__)
 
