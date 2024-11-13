@@ -6,6 +6,8 @@ from converters.video_to_video.video_to_video import VideoToVideoConverter
 from converters.image_to_image.image_converter import ImageConverter, IMAGE_FILTERS, VALID_IMAGE_EXTENSIONS
 from converters.audio_to_audio.audio_converter import AudioConverter
 from converters.extractor.metadataextractor import MetadataExtractor
+from exceptions.image_convert_exception import ImageConvertError
+from exceptions.video_convert_exception import VideoConvertError
 from validators.VideoValidator import VideoValidator
 from converters.compressor.compressor import FolderCompressor
 from models import db, File
@@ -67,20 +69,20 @@ def video_to_video():
     acodec = request.form.get('acodec')
     audio_channels = request.form.get('audio_channels')
 
-    # Validación de parámetros
-    validation_errors = VideoValidator.validate(output_format, vcodec, acodec, fps, audio_channels)
-    if validation_errors:
-        return jsonify({"error": validation_errors}), 400
 
     # Conversión del video
     converter = VideoToVideoConverter(video_path)
-    converter.convert(
-        output_format=output_format,
-        fps=fps,
-        video_codec=vcodec,
-        audio_codec=acodec,
-        audio_channels=audio_channels
-    )
+
+    try:
+        converter.convert(
+            output_format=output_format,
+            fps=fps,
+            video_codec=vcodec,
+            audio_codec=acodec,
+            audio_channels=audio_channels
+        )
+    except VideoConvertError as e:
+        return jsonify({"message": e.get_message()}), e.get_status_code()
 
     filename = os.path.splitext(os.path.basename(video_path))[0]
     video_path_converted = os.path.join('outputs', 'video_to_video_outputs', f"{filename}.{output_format}")
@@ -151,8 +153,8 @@ def image_configuration():
     try:
         output_path = converter.convert(resize=resize_measures, resize_type=resize_type, output_format=format, 
                                         angle=rotate_angle, grayscale=grayscale, filters=filters)
-    except ValueError as e:
-        return jsonify({"message": e}), 400
+    except ImageConvertError as e:
+        return jsonify({"message": e.get_message()}), e.get_status_code()
     finally:
         os.remove(image_path)
     download_url = request.host_url + '/api/download-image/' + os.path.basename(output_path)
@@ -316,6 +318,4 @@ def generate_checksum(filename):
         while n := f.readinto(mv):
             h.update(mv[:n])
     return h.hexdigest()
-
-
 
