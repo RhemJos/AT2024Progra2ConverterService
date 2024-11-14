@@ -17,6 +17,8 @@ from os import environ
 from routes.metadata_routes import metadata_blueprint
 from routes.audio_routes import audio_blueprint
 from routes.image_routes import image_blueprint
+from routes.video_routes import video_blueprint
+from routes.download_routes import download_blueprint
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DB_URL')
@@ -32,6 +34,8 @@ app.register_blueprint(api, url_prefix='/api')
 app.register_blueprint(metadata_blueprint, url_prefix='/api')
 app.register_blueprint(audio_blueprint, url_prefix='/api')
 app.register_blueprint(image_blueprint, url_prefix='/api')
+app.register_blueprint(video_blueprint, url_prefix='/api')
+app.register_blueprint(download_blueprint, url_prefix='/api')
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=9090, debug=True)
