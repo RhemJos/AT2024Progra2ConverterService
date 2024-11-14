@@ -13,6 +13,10 @@ class Converter(ABC):
         """Método general de conversión. Las subclases deben implementarlo."""
         raise NotImplementedError("Este método debe ser implementado por cada convertidor específico")
     
+    @abstractmethod
+    def validate_params(self, **kargs):
+        '''Method for validating params used in convert method'''
+    
     def get_output_path(self, output_dir, filename, extension):
         os.makedirs(output_dir, exist_ok = True)
         return os.path.join(output_dir, f"{filename}.{extension}")
