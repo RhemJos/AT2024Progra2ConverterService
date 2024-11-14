@@ -9,8 +9,8 @@ class VideoToVideoConverter(Converter):
 
     def convert(self, output_format=None, **kwargs):
         input_format = os.path.splitext(self.file_path)[1][1:].lower()
-        temp_output_path = os.path.join('outputs', 'video_to_video_outputs', f"{self.filename}-converted.{output_format}")
-        output_path = os.path.join('outputs', 'video_to_video_outputs', f"{self.filename}.{output_format}")
+        temp_output_path = os.path.join('outputs', 'video_converted_outputs', f"{self.filename}-converted.{output_format}")
+        output_path = os.path.join('outputs', 'video_converted_outputs', f"{self.filename}.{output_format}")
 
         # Inicializar comando ffmpeg con entrada
         ffmpeg_command = ffmpeg.input(self.file_path)
