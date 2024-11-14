@@ -8,7 +8,6 @@ from converters.audio_to_audio.audio_converter import AudioConverter
 from converters.extractor.metadataextractor import MetadataExtractor
 from exceptions.image_convert_exception import ImageConvertError
 from exceptions.video_convert_exception import VideoConvertError
-from validators.VideoValidator import VideoValidator
 from converters.compressor.compressor import FolderCompressor
 from models import db, File
 from PIL import Image
@@ -33,9 +32,9 @@ def video_to_images():
     except Exception as e:
         return jsonify({"error": f"No se pudo guardar el archivo en DB: {str(e)}"})
     
-    if file_in_db:
-        os.remove(video_path)
-        return jsonify({"message": "Video ya existe.", "output_path": '/' + new_path.replace("\\", "/")})
+    # if file_in_db:
+    #     os.remove(video_path)
+    #     return jsonify({"message": "Video ya existe.", "output_path": '/' + new_path.replace("\\", "/")})
 
     converter = VideoToImagesConverter(new_path)
     converter.convert()
@@ -143,7 +142,7 @@ def image_configuration():
     resize_height = request.form.get('resize_height', type=int)
     resize_measures = (resize_width, resize_height) if resize_width or resize_height else None 
     resize_type = request.form.get('resize_type', default=None)
-    format = request.form.get('format', default=None)
+    format = request.form.get('output_format', default=None)
     rotate_angle = request.form.get('rotate', type=int)
     grayscale = True if 'GRAYSCALE' in request.form else False
     filters = []
@@ -151,7 +150,7 @@ def image_configuration():
         if filter in request.form:
             filters.append(filter)
     try:
-        output_path = converter.convert(resize=resize_measures, resize_type=resize_type, output_format=format, 
+        output_path = converter.convert(resize=resize_measures, resize_type=resize_type, output_format=format,
                                         angle=rotate_angle, grayscale=grayscale, filters=filters)
     except ImageConvertError as e:
         return jsonify({"message": e.get_message()}), e.get_status_code()
