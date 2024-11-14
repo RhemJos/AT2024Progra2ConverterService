@@ -100,7 +100,7 @@ def video_to_video():
 
     filename = os.path.splitext(os.path.basename(file.file_path))[0]
     video_path_converted = os.path.join('outputs', 'video_to_video_outputs', f"{filename}.{output_format}")
-    download_url = request.host_url + 'api/download-video/' + filename + '.' + output_format
+    download_url = request.host_url + 'api/download-video/' + filename + '-converted.' + output_format
 
     return jsonify({
         "message": "Video processed successfully.",
