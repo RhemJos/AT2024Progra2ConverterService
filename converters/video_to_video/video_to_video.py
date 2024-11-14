@@ -1,8 +1,7 @@
 import ffmpeg
 import os
 from converters.converter import Converter
-from validators.VideoValidator import VideoValidator
-from exceptions.video_convert_exception import VideoConvertError
+from validators.video_validator import VideoValidator
 from utils import get_args
 
 class VideoToVideoConverter(Converter):
@@ -20,18 +19,21 @@ class VideoToVideoConverter(Converter):
         # Agregar parámetros opcionales a la salida
         output_args = {}
         if 'fps' in kwargs and kwargs['fps']:
-            output_args['r'] = int(kwargs['fps'])
+            output_args['r'] = kwargs['fps']
         if 'video_codec' in kwargs and kwargs['video_codec']:
             output_args['vcodec'] = kwargs['video_codec']
         if 'audio_codec' in kwargs and kwargs['audio_codec']:
             output_args['acodec'] = kwargs['audio_codec']
         if 'audio_channels' in kwargs and kwargs['audio_channels']:
-            output_args['ac'] = int(kwargs['audio_channels'])
+            output_args['ac'] = kwargs['audio_channels']
+        
         
         # Validación de parámetros
-        validation_errors = VideoValidator.validate(output_format=output_format, **output_args)
-        if validation_errors:
-            raise VideoConvertError( str(validation_errors), 400 )
+        validator = VideoValidator()
+        validate_args = output_args.copy()
+        if output_format:
+            validate_args['output_format'] = output_format
+        validator.validate(**validate_args)
 
         # Construcción del comando ffmpeg con los parámetros opcionales en una sola salida
         ffmpeg_command = ffmpeg_command.output(temp_output_path if input_format == output_format else output_path, **output_args)
@@ -49,5 +51,5 @@ class VideoToVideoConverter(Converter):
             return output_path
 
         except ffmpeg.Error as e:
-            print(f"Error al ejecutar el comando ffmpeg: {e.stderr.decode('utf8')}")
+            print(f"Error al ejecutar el comando ffmpeg: {e.stderr}")
             raise

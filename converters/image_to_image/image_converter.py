@@ -31,7 +31,7 @@ class ImageConverter(Converter):
 
     def resize(self, measures, resize_type=None):
         if (len(measures) != 2):
-            raise ImageConvertError("Resize debe ser de tipo (ancho, alto)", 400, { 'measures': measures })
+            raise ImageConvertError("Resize debe ser de tipo (ancho, alto)", 400)
         width = measures[0]
         height = measures[1]
         if not (width):
@@ -46,7 +46,7 @@ class ImageConverter(Converter):
         
     def preset_resize(self, measures, resize_type):
         if resize_type not in VALID_RESIZE_TYPES:
-            raise ImageConvertError("El tipo de resize ingresado no se reconoce", 400, {"resize_type" : resize_type})
+            raise ImageConvertError("El tipo de resize ingresado no se reconoce", 400)
         match resize_type:
             case "THUMBNAIL":
                 self.img.thumbnail(measures)      
@@ -75,11 +75,9 @@ class ImageConverter(Converter):
         args = get_args(self.parameters, kwargs)
         resize = args['resize']
         resize_type = args['resize_type']
-        output_format = args['output_format']
         angle = args['angle']
         grayscale = args['grayscale']
         filters = args['filters']
-        
         if angle:
             self.rotate(angle)
         if grayscale:
@@ -91,7 +89,7 @@ class ImageConverter(Converter):
             self.resize(resize, resize_type)
         if output_format:
             if output_format not in VALID_IMAGE_EXTENSIONS:
-                raise ImageConvertError("Formato de conversión de imagen no soportado.", 400, {"output_format" :output_format})
+                raise ImageConvertError("Formato de conversión de imagen no soportado.", 400)
             else:
                 self.extension = output_format
         
