@@ -29,7 +29,7 @@ def download_image(filename):
 
 @download_blueprint.route('/download-video/<filename>', methods=['GET'])
 def download_video(filename):
-    return send_file_download('video_to_video_outputs', filename)
+    return send_file_download('video_converted_outputs', filename)
 
 
 @download_blueprint.route('/download-frames/<filename>', methods=['GET'])
