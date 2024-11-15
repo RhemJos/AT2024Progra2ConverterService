@@ -20,7 +20,8 @@ class VideoToVideoConverter(Converter):
         super().__init__(video_path)
 
     def convert(self, output_format=None, **kwargs):
-        temp_output_path = os.path.join('outputs', 'video_converted_outputs', f"{self.filename}-converted.{output_format}")
+        temp_output_path = os.path.join('outputs',
+                                        'video_converted_outputs', f"{self.filename}-converted.{output_format}")
         output_path = os.path.join('outputs', 'video_converted_outputs', f"{self.filename}.{output_format}")
         # Initialize ffmpeg command with input
         ffmpeg_command = ffmpeg.input(self.file_path)
