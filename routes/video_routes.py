@@ -54,7 +54,7 @@ def video_to_images():
     update(file)
 
     compressed_file = FolderCompressor(frames_folder)
-    zip_path = compressed_file.compress()
+    compressed_file.compress()
     zip_url = request.host_url + '/api/download-frames/' + filename + '.zip'
 
     return jsonify({
@@ -67,17 +67,15 @@ def video_to_images():
 @video_blueprint.route('/video-to-video', methods=['POST'])
 def video_to_video():
     try:  # Save file using "save_file"
-        video_path = save_file(request, 'file', 'video_to_video_outputs',
+        video_path = save_file(request, 'file', 'video_converted_outputs',
                                valid_formats=["mp4", "mov", "avi", "mkv", "flv", "webm", "ogg", "wmv"])
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
-
     fps = request.form.get('fps')
     output_format = request.form.get('format')
     vcodec = request.form.get('vcodec')
     acodec = request.form.get('acodec')
     audio_channels = request.form.get('audio_channels')
-
     # Parameter validation
     validation_errors = VideoValidator.validate(output_format, vcodec, acodec, fps, audio_channels)
     if validation_errors:
@@ -99,7 +97,7 @@ def video_to_video():
     )
 
     filename = os.path.splitext(os.path.basename(file.file_path))[0]
-    video_path_converted = os.path.join('outputs', 'video_to_video_outputs', f"{filename}.{output_format}")
+    video_path_converted = os.path.join('outputs', 'video_converted_outputs', f"{filename}.{output_format}")
     download_url = request.host_url + 'api/download-video/' + filename + '-converted.' + output_format
 
     return jsonify({
