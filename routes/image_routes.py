@@ -30,12 +30,12 @@ def image_configuration():
     try:
         file_in_db, file = get_or_save(image_path)
     except Exception as e:
-        return jsonify({"error": f"No se pudo guardar el archivo en DB: {str(e)}"})
+        return jsonify({"error": f"Failed to save file to DB: {str(e)}"})
 
     try:
         converter = ImageConverter(file.file_path)
     except ValueError:
-        return jsonify({"error": "No fue posible cargar la imagen"}), 400
+        return jsonify({"error": "The image could not be loaded"}), 400
 
     resize_width = request.form.get('resize_width', type=int)
     resize_height = request.form.get('resize_height', type=int)
@@ -53,10 +53,11 @@ def image_configuration():
                                         angle=rotate_angle, grayscale=grayscale, filters=filters)
     except ValueError as e:
         return jsonify({"message": e}), 400
+    finally:
+        os.remove(image_path)
 
     download_url = request.host_url + '/api/download-image/' + os.path.basename(output_path)
     return jsonify({
         "message": "Image processed and saved successfully.",
         "output_path": "/" + output_path.replace("\\", "/"),
         "download_URL": download_url}), 200
-

@@ -13,6 +13,7 @@
 from flask import Blueprint, request, jsonify
 from helpers.endpoints_helper import save_file, get_or_save
 from converters.audio_to_audio.audio_converter import AudioConverter
+from converters.audio_to_audio.audio_converter import AudioConversionError
 import os
 
 audio_blueprint = Blueprint('convert-audio', __name__)
@@ -58,8 +59,12 @@ def convert_audio():
 
     try:
         converted_output_path = converter.convert(output_format, **kwargs)
+    except AudioConversionError as error:
+        return jsonify({"error": error.get_message()}), error.get_status_code()
     except Exception as e:
         return jsonify({"error": "Audio conversion failed."}), 500
+    finally:
+        os.remove(output_path)
 
     download_url = (request.host_url + 'api/download-audio/'
                     + os.path.splitext(os.path.basename(file.file_path))[0] + '.' + output_format)
