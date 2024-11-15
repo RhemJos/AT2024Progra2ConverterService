@@ -1,7 +1,7 @@
 from PIL import Image, ImageFilter, ImageOps
 import os
 from converters.converter import Converter
-from utils import get_args
+from helpers.utils import get_args
 
 IMAGE_FILTERS = ("BLUR", "CONTOUR", "DETAIL", "EDGE_ENHANCE", "EDGE_ENHANCE_MORE", "EMBOSS", 
             "FIND_EDGES", "SHARPEN", "SMOOTH", "SMOOTH_MORE")
