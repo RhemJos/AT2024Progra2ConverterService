@@ -22,6 +22,12 @@ RUN apt-get update && \
 # Copia el resto del código de la aplicación
 COPY . .
 
+ADD https://exiftool.org/Image-ExifTool-13.03.tar.gz /app/converters/extractor/bin/exifTool
+RUN cd /app/converters/extractor/bin/exifTool/ && \
+    tar -xf Image-ExifTool-13.03.tar.gz && \
+    mv Image-ExifTool-13.03 exifToolPerl && \
+    rm Image-ExifTool-13.03.tar.gz
+
 # Exponer el puerto en el que correrá Flask
 EXPOSE 9090
 

@@ -1,99 +1,128 @@
 # AT2024Progra2ConverterService
-
-## Tablet of Contents
-- [Installation](#installation)
-- [Project Structure](#project-structure)
-- [Configuration](#configuration)
-- [Usage](#usage)
-- [API Endpoints](#api-endpoints)
-- [Technologies](#technologies)
-- [Contributing](#contributing)
+# 🐍 Converter Service
 
 # Description
+This project provides a variety of file conversion tools. Users can upload files of various types (video, image, audio, etc.) and choose specific processing tasks, such as extracting images (frames) from a video, converting an image to different formats, or changing its properties, among other options. The project is developed in Python, with Flask serving as the framework for the REST API.
 
-This project is an application offering multiple file conversion tools based on user needs. Users can upload files of various types (video, image, audio, etc.) and select the desired conversion type, such as converting videos to images, images to different formats, audio to text, among others. The project is built in Python using Flask as the framework for the REST API.
+## Tablet of Contents
+
+- [Project Structure](#-project-structure)
+- [Installation](#installation)
+- [Folder and Files explanation](#folders-and-files-explanation-)
+
+
+# 📂 Project Structure
+
+
+```
+├── converters/          # Folder with converter folders
+│   ├── audio_to_audio/
+│   │   ├── audio_converter.py   
+│   │   ├── audio_exception.py
+│   │   └── audio_options.py
+│   │
+│   ├── extractor/
+│   │   ├── bin/exifTool/
+│   │   │   └── [corresponding files...]
+│   │   │
+│   │   ├── extractor.py
+│   │   └── metadataextractor.py
+│   │   
+│   ├── image_to_image/
+│   │   └── image_converter.py
+│   │   
+│   ├── video_to_images/
+│   │   └── video_to_images.py
+│   │   
+│   ├── video_to_video/
+│   │   └── video_to_video.py
+│   │   
+│   └── converter.py
+│   
+├── helpers/           
+│   ├── compressor.py
+│   ├── endpoints_helper.py
+│   └── utils.py
+│   
+├── routes/ 
+│   ├── audio_routes.py
+│   ├── download_routes.py
+│   ├── image_routes.py
+│   ├── login_routes.py
+│   ├── metadata_routes.py
+│   └── video_routes.py
+│   
+├── validators/ 
+│   ├── Validator.py
+│   └── VideoValidator.py
+│
+├── .dockerignore
+├── .env.template
+├── app.py
+├── docker-compose.yml
+├── Dockerfile
+├── models.py
+├── README.md               # Repository documentation
+├── requirements.txt        # Project Dependencies
+├── routes.py
+└── utils.py
+```
 
 # Installation
 
-## Requirements
-- Python 3.9.0
-- Flask 3.0.3
-- Flask-SQLAlchemy 3.1.1
-
 ## Steps
-1. Clone this repository locally:
+**1. Clone this repository locally:**
    ```bash
    git clone https://github.com/jpsandovaln/AT2024Progra2ConverterService.git
    ```
 
-2. Create and activate a virtual environment:
-    * On Windows:
-    ```bash
-    python -m venv venv
-    venv\Scripts\activate
-    ```
-   * On Linux:
-    ```bash
-    python -m venv venv
-    source myenv/bin/activate
-    ```
+**2. Create and activate a virtual environment:**
+* On Windows:
+ ```bash
+ python -m venv venv
+ venv\Scripts\activate
+ ```
+* On Linux:
+ ```bash
+ python -m venv venv
+ source myenv/bin/activate
+ ```
 
-3. Install the required dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
+**3. Install the required dependencies:**
 
-# Project Structure
-The main project structure is as follows:
+To view all the packages and dependencies needed to run this project, check the requirements.txt file. You can install them easily with the following command
+```bash
+pip install -r requirements.txt
+```
 
-    ```
-    File-Converter-project/
-    │
-    ├── app/
-    │   ├── __init__.py
-    │   ├── routes.py
-    │   ├── models.py
-    │   ├── uploads/
-    │   ├── converters/
-    │   │   ├── video_to_images.py
-    │   │   └── ...
-    │   └── api/
-    │       └── endpoints.py
-    │
-    ├── run.py
-    ├── requirements.txt
-    └── README.md
-    ```
+# Folders and Files explanation 
 
-# Usage
-To start the Flask server and run the application, use the following command:
-    ```bash
-    python run.py
-    ```
+```markdown
+📁 converters/
+[Pending]
+- `**folders**`: [Pending]
+- `**files**.py`: [Pending]
 
-# Api endpoints
+📁 helpers/
+[Pending]
+- `**files**.py`: [Pending]
 
-# Technologies
-- Backend: Python, Flask
-- API Testing: Postman
-- Virtual Environment: venv (Python virtual environment)
-- Version Control: Git and GitHub
+📁 routes/
+[Pending]
+- `**files**.py`: [Pending]
 
-## Contributing
+📁 validators/
+[Pending]
+- `**files**.py`: [Pending]
 
-To contribute to this project:
-
-1. **Fork the repository** on GitHub.
-2. **Create a branch** for your feature or fix:
-    ```bash
-    git checkout -b feature-name
-    ```
-3. **Commit your changes** with a clear and descriptive message:
-    ```bash
-    git commit -m "Add new feature"
-    ```
-4. **Push the changes** to your forked repository:
-    ```bash
-    git push origin feature-name
-    ```
-5. **Open a Pull Request** on the original repository.
+📄 `.dockerignore`: [Pending]
+📄 `.env.template`: [Pending]
+📄 `.Dockerfile`: [Pending]
+📄 `README.md`: Repository documentation
+📄 `app.py`: [Pending]
+📄 `docker-compose.yml`: [Pending]
+📄 `models.py`: [Pending]
+📄 `requirements.txt`: [Pending]
+📄 `routes.py`: [Pending]
+📄 `utils.py`: [Pending]
+```

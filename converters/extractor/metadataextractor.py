@@ -1,5 +1,5 @@
 import platform
-from utils import CommandExecutor, Formatter
+from helpers.utils import CommandExecutor, Formatter
 from converters.extractor.extractor import Extractor
 import os
 
