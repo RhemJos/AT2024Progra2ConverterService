@@ -14,7 +14,7 @@ class Converter(ABC):
         raise NotImplementedError("Este método debe ser implementado por cada convertidor específico")
     
     @abstractmethod
-    def validate_params(self, **kargs):
+    def validate_params(self,**kargs):
         '''Method for validating params used in convert method'''
     
     def get_output_path(self, output_dir, filename, extension):

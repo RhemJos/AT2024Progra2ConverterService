@@ -3,16 +3,13 @@ from flask import Blueprint, request, jsonify, send_file
 from sqlalchemy.sql.coercions import expect
 from converters.video_to_images.video_to_images import VideoToImagesConverter
 from converters.video_to_video.video_to_video import VideoToVideoConverter
-from converters.image_to_image.image_converter import ImageConverter, IMAGE_FILTERS, VALID_IMAGE_EXTENSIONS
+from converters.image_to_image.image_converter import ImageConverter, IMAGE_OPTIONS
 from converters.audio_to_audio.audio_converter import AudioConverter
 from converters.extractor.metadataextractor import MetadataExtractor
 from exceptions.image_convert_exception import ImageConvertError
 from exceptions.video_convert_exception import VideoConvertError
 from converters.compressor.compressor import FolderCompressor
 from models import db, File
-from PIL import Image
-import mimetypes
-import io
 import hashlib
 
 
@@ -128,30 +125,29 @@ def download_video(filename):
 @api.route('/image-configuration', methods=['POST'])
 def image_configuration():
     try:
-        image_path = save_file(request, 'image', 'image_converted_outputs', VALID_IMAGE_EXTENSIONS)
+        image_path = save_file(request, 'image', 'image_converted_outputs', IMAGE_OPTIONS['extension'])
     except ValueError as e:
         return jsonify({"error": e.args[0]}), 400
 
     try:
         converter = ImageConverter(image_path)
-    except ValueError:
-        return jsonify({"error": "No fue posible cargar la imagen"}), 400
+    except ImageConvertError as e:
+        return jsonify({"error": e.args[0]}), 400
 
 
     resize_width = request.form.get('resize_width', type=int)
     resize_height = request.form.get('resize_height', type=int)
-    resize_measures = (resize_width, resize_height) if resize_width or resize_height else None 
     resize_type = request.form.get('resize_type', default=None)
     format = request.form.get('output_format', default=None)
     rotate_angle = request.form.get('rotate', type=int)
-    grayscale = True if 'GRAYSCALE' in request.form else False
-    filters = []
-    for filter in IMAGE_FILTERS:
-        if filter in request.form:
-            filters.append(filter)
+    filters = request.form.get('filter', None)
+    # filters = []
+    # for filter in IMAGE_FILTERS:
+    #     if filter in request.form:
+    #         filters.append(filter)
     try:
-        output_path = converter.convert(resize=resize_measures, resize_type=resize_type, output_format=format,
-                                        angle=rotate_angle, grayscale=grayscale, filters=filters)
+        output_path = converter.convert(resize_width=resize_width, resize_height=resize_height, resize_type=resize_type, output_format=format,
+                                        angle=rotate_angle, filters=filters)
     except ImageConvertError as e:
         return jsonify({"message": e.get_message()}), e.get_status_code()
     finally:
