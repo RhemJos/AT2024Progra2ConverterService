@@ -53,8 +53,8 @@ def image_configuration():
                                         angle=rotate_angle, grayscale=grayscale, filters=filters)
     except ValueError as e:
         return jsonify({"message": e}), 400
-    finally:
-        os.remove(image_path)
+    # finally:
+    #     os.remove(image_path)
 
     download_url = request.host_url + '/api/download-image/' + os.path.basename(output_path)
     return jsonify({
