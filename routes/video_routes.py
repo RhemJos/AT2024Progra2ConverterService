@@ -35,7 +35,6 @@ def video_to_images():
         return jsonify({"error": f"Failed to save file to DB: {str(e)}"})
 
     if file_in_db and file.output_path:
-        os.remove(video_path)
         zip_url = request.host_url + '/api/download-frames/' + file.checksum + '.zip'
         return jsonify({
             "message": "Video already exists in Database.",
