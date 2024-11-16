@@ -1,40 +1,47 @@
 import ffmpeg
 import os
 from converters.converter import Converter
-
+from validators.int_validator import IntValidator
+from validators.file_validator import FileValidator
+from validators.validator_context import ValidatorContext
+from exceptions.video_convert_exception import VideoConvertError
 
 class VideoToImagesConverter(Converter):
     def __init__(self, video_path):
         super().__init__(video_path)
 
-    def convert(self, output_path=None, **kwargs):
-        # Extraemos el valor de fps de kwargs, o usamos 1 como valor por defecto
+    def convert(self, **kwargs):
         fps = kwargs.get('fps', 1)
+        output_path = kwargs.get('output_path', None)
 
-        # Convierte el video en una serie de fotogramas
+        # Validate parameters
+        self.validate_params(output_path=output_path, fps=fps)
+
         frames_folder = os.path.join('outputs', 'video_to_frames_outputs', self.filename)
         os.makedirs(frames_folder, exist_ok=True)
 
         if output_path is None:
             output_path = os.path.join(frames_folder, '%d.jpg')
 
-        # Comando ffmpeg para extraer los fotogramas
+        # Ffmpeg command to extract frames
         ffmpeg_command = ffmpeg.input(self.file_path)
 
-        # Aplicar el filtro fps en la entrada
+        # Applies fps filter
         ffmpeg_command = ffmpeg_command.filter('fps', fps=fps)
 
-        # Definir la salida del comando
+        # Defines command output
         ffmpeg_command = ffmpeg_command.output(output_path)
 
         try:
-            # Ejecutar el comando ffmpeg
             ffmpeg_command.run(overwrite_output=True)
             return frames_folder
         except ffmpeg.Error as e:
-            # Capturar y mostrar el error si ocurre
-            if e.stderr:
-                print(f"Error al ejecutar el comando ffmpeg: {e.stderr.decode('utf8')}")
-            else:
-                print("Error desconocido al ejecutar el comando ffmpeg.")
-            raise
+            raise VideoConvertError(f"ffmpeg command execution failed: {e.stderr.decode('utf8')}", 500)
+
+
+    def validate_params(self, **kwargs):
+        validators = [ IntValidator(kwargs['fps'], True, "Fps"),
+                       FileValidator(kwargs['output_path'], True, "Output directory") ]
+
+        validator_context = ValidatorContext(validators, VideoConvertError)
+        validator_context.run_validations()
