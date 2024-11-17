@@ -28,7 +28,7 @@ class ImageConverter(Converter):
         except (IOError):
             raise ValueError("El archivo no es una imagen valida")
 
-    def resize(self, measures, resize_type=None):
+    def __resize(self, measures, resize_type=None):
         if (len(measures) != 2):
             raise ValueError("Resize debe ser de tipo (ancho, alto)")
         width = measures[0]
@@ -39,11 +39,11 @@ class ImageConverter(Converter):
             height = self.img.height
         measures = (width, height)
         if resize_type:
-            self.preset_resize(measures, resize_type)
+            self.__preset_resize(measures, resize_type)
         else:
-            self.custom_resize(measures)
+            self.__custom_resize(measures)
         
-    def preset_resize(self, measures, resize_type):
+    def __preset_resize(self, measures, resize_type):
         if resize_type not in VALID_RESIZE_TYPES:
             raise ValueError("El tipo de resize ingresado no se reconoce")
         match resize_type:
@@ -56,21 +56,21 @@ class ImageConverter(Converter):
             case "PAD":
                 self.img = ImageOps.pad(self.img, measures, color="#ffff")    
                 
-    def custom_resize(self, measures):
+    def __custom_resize(self, measures):
         self.img = self.img.resize(measures)
 
-    def rotate(self, angle):
+    def __rotate(self, angle):
         self.img = self.img.rotate(angle, expand=True, fillcolor="black")
 
-    def grayscale(self):
+    def __grayscale(self):
         self.img = self.img.convert("L")
 
-    def apply_filter(self, filter_name):
+    def __apply_filter(self, filter_name):
         filter_name = getattr(ImageFilter, filter_name, None)
         if filter_name:
             self.img = self.img.filter(filter_name)
 
-    def convert(self, output_format=None, **kwargs):
+    def convert(self, **kwargs):
         args = get_args(self.parameters, kwargs)
         resize = args['resize']
         resize_type = args['resize_type']
@@ -80,14 +80,14 @@ class ImageConverter(Converter):
         filters = args['filters']
         
         if angle:
-            self.rotate(angle)
+            self.__rotate(angle)
         if grayscale:
-            self.grayscale()
+            self.__grayscale()
         if filters:
             for filter in filters:
-                self.apply_filter(filter)
+                self.__apply_filter(filter)
         if resize: 
-            self.resize(resize, resize_type)
+            self.__resize(resize, resize_type)
         if output_format:
             if output_format not in VALID_IMAGE_EXTENSIONS:
                 raise ValueError("Formato de conversión de imagen no soportado.")
