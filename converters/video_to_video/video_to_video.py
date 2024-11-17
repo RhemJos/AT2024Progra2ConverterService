@@ -19,7 +19,10 @@ class VideoToVideoConverter(Converter):
         super().__init__(video_path)
 
     def convert(self, **kwargs):
-        output_format = kwargs.get('output_format', None)
+        # Validates params
+        self.validate_params( **kwargs)
+
+        output_format = kwargs.get('output_format')
         input_format = os.path.splitext(self.file_path)[1][1:].lower()
         temp_output_path = os.path.join('outputs', 'video_to_video_outputs', f"{self.filename}-converted.{output_format}")
         output_path = os.path.join('outputs', 'video_to_video_outputs', f"{self.filename}.{output_format}")
@@ -38,10 +41,6 @@ class VideoToVideoConverter(Converter):
         if 'audio_channels' in kwargs and kwargs['audio_channels']:
             output_args['ac'] = kwargs['audio_channels']
         
-        
-        # Validates params
-        self.validate_params(output_format, **output_args)
-
         # Constructs command with optional params
         ffmpeg_command = ffmpeg_command.output(temp_output_path if input_format == output_format else output_path, **output_args)
 
@@ -57,19 +56,19 @@ class VideoToVideoConverter(Converter):
             return output_path
 
         except ffmpeg.Error as e:
-            raise VideoConvertError(f"Error al ejecutar el comando ffmpeg: {e.stderr}" , 500)
+            raise VideoConvertError(f"Ffmpeg command execution failed: {e.stderr}" , 500)
 
-    def validate_params(self, output_format, **kwargs):
-        validators = [ FormatValidator(output_format, VIDEO_OPTIONS['format'], "Formato de salida") ]
+    def validate_params(self, **kwargs):
+        validators = [ FormatValidator(kwargs['output_format'], VIDEO_OPTIONS['format'], "Output format") ]
     
-        if 'r' in kwargs:
-            validators.append(IntValidator(kwargs['r'], True, "Frames por segundo") )
-        if 'vcodec' in kwargs:   
-            validators.append(FormatValidator(kwargs['vcodec'], VIDEO_OPTIONS['vcodec'], "Códec de video") )
-        if 'acodec' in kwargs:
-            validators.append(FormatValidator(kwargs['acodec'], VIDEO_OPTIONS['acodec'], "Códec de audio") )
-        if 'ac' in kwargs:
-            validators.append(FormatValidator(kwargs['ac'], VIDEO_OPTIONS['audio_channels'], "Canales de audio") )
+        if kwargs['fps']:
+            validators.append(IntValidator(kwargs['r'], True, "Frames per second") )
+        if kwargs['video_codec']:   
+            validators.append(FormatValidator(kwargs['vcodec'], VIDEO_OPTIONS['vcodec'], "Video codec") )
+        if kwargs['audio_codec']:
+            validators.append(FormatValidator(kwargs['acodec'], VIDEO_OPTIONS['acodec'], "Audio codec") )
+        if kwargs['audio_channels']:
+            validators.append(FormatValidator(kwargs['ac'], VIDEO_OPTIONS['audio_channels'], "Audio channels") )
 
         validator_context = ValidatorContext(validators, VideoConvertError)
         validator_context.run_validations()

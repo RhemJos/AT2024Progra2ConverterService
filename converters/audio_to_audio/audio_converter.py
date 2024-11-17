@@ -26,11 +26,10 @@ class AudioConverter(Converter):
         self.audio_path = audio_path
 
     def convert(self, **kwargs):
-        output_format = kwargs.get("output_format", 'mp3')
-        
         #Validate parameters
         self.validate_params(**kwargs)
 
+        output_format = kwargs.get("output_format", 'mp3')
         output_path = self._get_output_path(output_format)
 
         # If the file already exists do not convert
@@ -39,9 +38,6 @@ class AudioConverter(Converter):
 
         # Set options
         options = self._get_audio_options(**kwargs)
-
-        #Validate options
-        self.validate_params(output_format, **options)
 
         try:
             self._convert_audio(output_path, options)
@@ -52,6 +48,7 @@ class AudioConverter(Converter):
 
     def validate_params(self, **kwargs):
         validators = [ FormatValidator(kwargs['output_format'], AUDIO_OPTIONS['format'], "Output format") ]
+        kwargs = { key: value for key, value in kwargs.items() if value is not None}
         if 'bit_rate' in kwargs:
             validators.append(FormatValidator(kwargs['bit_rate'], AUDIO_OPTIONS['bit_rate'], "Bit rate") )
         if 'channels' in kwargs:

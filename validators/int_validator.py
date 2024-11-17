@@ -11,9 +11,9 @@ class IntValidator(Validator):
         try:
             int(self.number)
         except ValueError:
-            raise self.error_class(f"{self.param_name} debe ser un número entero.", 400)
+            raise self.error_class(f"{self.param_name} must be an integer.", 400)
         if self.positive:
             if int(self.number) < 0:
-                raise self.error_class(f"{self.param_name} debe ser un número positivo.", 400)
+                raise self.error_class(f"{self.param_name} must be positive number.", 400)
 
 

@@ -12,7 +12,7 @@ class VideoToImagesConverter(Converter):
 
     def convert(self, **kwargs):
         fps = kwargs.get('fps', 1)
-        output_path = kwargs.get('output_path', None)
+        output_path = kwargs.get('output_path')
 
         # Validate parameters
         self.validate_params(output_path=output_path, fps=fps)
@@ -41,7 +41,9 @@ class VideoToImagesConverter(Converter):
 
     def validate_params(self, **kwargs):
         validators = [ IntValidator(kwargs['fps'], True, "Fps"),
-                       FileValidator(kwargs['output_path'], True, "Output directory") ]
+                       ]
+        if kwargs['output_path']:
+            validators.append(FileValidator(kwargs['output_path'], True, "Output directory") )
 
         validator_context = ValidatorContext(validators, VideoConvertError)
         validator_context.run_validations()
