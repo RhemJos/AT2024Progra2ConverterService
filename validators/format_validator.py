@@ -8,7 +8,6 @@ class FormatValidator(Validator):
         self.valid_options = valid_options
 
     def validate(self):
-        print(self.entered_format, self.valid_options)
         if self.entered_format not in self.valid_options:  
-            message = f"{self.param_name}: '{self.entered_format}' no es válido. Opciones válidas: {self.valid_options}."
+            message = f"{self.param_name}: '{self.entered_format}' is not a valid option. Supported options: {self.valid_options}."
             raise self.error_class( message, 400)

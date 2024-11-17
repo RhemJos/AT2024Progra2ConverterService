@@ -135,19 +135,15 @@ def image_configuration():
         return jsonify({"error": e.args[0]}), 400
 
 
-    resize_width = request.form.get('resize_width', type=int)
-    resize_height = request.form.get('resize_height', type=int)
-    resize_type = request.form.get('resize_type', default=None)
-    format = request.form.get('output_format', default=None)
-    rotate_angle = request.form.get('rotate', type=int)
-    filters = request.form.get('filter', None)
-    # filters = []
-    # for filter in IMAGE_FILTERS:
-    #     if filter in request.form:
-    #         filters.append(filter)
+    resize_width = request.form.get('resize_width')
+    resize_height = request.form.get('resize_height')
+    resize_type = request.form.get('resize_type')
+    format = request.form.get('output_format')
+    rotate_angle = request.form.get('rotate')
+    filters = request.form.getlist('filter')
     try:
-        output_path = converter.convert(resize_width=resize_width, resize_height=resize_height, resize_type=resize_type, output_format=format,
-                                        angle=rotate_angle, filters=filters)
+        output_path = converter.convert(resize_width=resize_width, resize_height=resize_height, resize_type=resize_type, 
+                                        output_format=format, angle=rotate_angle, filters=filters)
     except ImageConvertError as e:
         return jsonify({"message": e.get_message()}), e.get_status_code()
     finally:
@@ -189,6 +185,7 @@ def convert_audio():
     converter = AudioConverter(output_path)
 
     kwargs = {}
+    kwargs['output_format'] = output_format
     if bit_rate:
         kwargs['bit_rate'] = bit_rate
     if channels:
@@ -203,7 +200,7 @@ def convert_audio():
         kwargs['speed'] = speed
 
     try:
-        converted_output_path = converter.convert(output_format, **kwargs)
+        converted_output_path = converter.convert(**kwargs)
     except Exception as e:
         os.remove(output_path)
         return jsonify({"error": "Conversión de audio fallida."}), 500

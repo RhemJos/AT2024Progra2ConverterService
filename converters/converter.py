@@ -10,8 +10,8 @@ class Converter(ABC):
     
     @abstractmethod
     def convert(self, output_format=None, **kwargs):
-        """Método general de conversión. Las subclases deben implementarlo."""
-        raise NotImplementedError("Este método debe ser implementado por cada convertidor específico")
+        """General convertion method"""
+        raise NotImplementedError("Convert method should be implemented by each converter")
     
     @abstractmethod
     def validate_params(self,**kargs):
