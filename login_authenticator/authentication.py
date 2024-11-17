@@ -20,7 +20,7 @@ class LoginService(AuthenticationService):
     def authenticate(self, username, password):
         # Verify credentials
         if username != 'Admin' or password != 'contraseña_123':  # Hard code
-            return jsonify({'message': 'Credenciales inválidas!'}), 401
+            return jsonify({'message': 'Invalid credentials!'}), 401
         # Generate a JWT token
         token = jwt.encode({
             'username': username,
