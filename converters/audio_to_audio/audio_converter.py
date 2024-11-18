@@ -42,7 +42,7 @@ class AudioConverter(Converter):
         try:
             self._convert_audio(output_path, options)
         except ffmpeg.Error as e:
-            raise AudioConvertError(f"Audio convertion failed: {e.stderr.decode()}", 500)
+            raise AudioConvertError(f"Ffmped command for audio convertion failed: {e.stderr.decode()}", 500)
         else:
             return output_path
 
@@ -58,7 +58,7 @@ class AudioConverter(Converter):
         if 'volume' in kwargs:
             validators.append(FormatValidator(kwargs['volume'], AUDIO_OPTIONS['volume'], "Volume") )
         if 'speed' in kwargs:
-            validators.append(FloatValidator(kwargs['speed'], 1, True, "Speed") )
+            validators.append(FloatValidator(kwargs['speed'], True, "Speed") )
             validators.append(RangeValidator(kwargs['speed'], 0.5, 2.0, "Speed") )
         
         validator_context = ValidatorContext(validators, AudioConvertError)

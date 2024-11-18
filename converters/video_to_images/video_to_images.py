@@ -36,7 +36,7 @@ class VideoToImagesConverter(Converter):
             ffmpeg_command.run(overwrite_output=True)
             return frames_folder
         except ffmpeg.Error as e:
-            raise VideoConvertError(f"ffmpeg command execution failed: {e.stderr.decode('utf8')}", 500)
+            raise VideoConvertError(f"ffmpeg command execution failed: {e.stderr}", 500)
 
 
     def validate_params(self, **kwargs):

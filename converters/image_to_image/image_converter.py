@@ -68,10 +68,10 @@ class ImageConverter(Converter):
         self.validate_params(**kwargs)
 
         output_format = kwargs.get('output_format')
-        resize_width = kwargs.get('resize_width')
-        resize_height = kwargs.get('resize_height')
+        resize_width = int(kwargs.get('resize_width'))
+        resize_height = int(kwargs.get('resize_height'))
         resize_type = kwargs.get('resize_type')
-        angle = kwargs.get('angle')
+        angle = int(kwargs.get('angle'))
         filters = kwargs.get('filters')
 
         if angle:
