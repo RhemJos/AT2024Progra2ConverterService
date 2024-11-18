@@ -39,19 +39,19 @@ class VideoToVideoConverter(Converter):
         if 'audio_codec' in kwargs and kwargs['audio_codec']:
             output_args['acodec'] = kwargs['audio_codec']
         if 'audio_channels' in kwargs and kwargs['audio_channels']:
-            output_args['ac'] = kwargs['audio_channels']
-        
-        # Constructs command with optional params
-        ffmpeg_command = ffmpeg_command.output(temp_output_path if input_format == output_format else output_path, **output_args)
+            output_args['ac'] = int(kwargs['audio_channels'])
+
+        # Construcción del comando ffmpeg con los parámetros opcionales en una sola salida
+        ffmpeg_command = ffmpeg_command.output(temp_output_path, **output_args)
 
         try:
             ffmpeg_command.run(overwrite_output=True)
 
-            # Renames temp file if formats matched
-            if input_format == output_format:
-                if os.path.exists(output_path):
-                    os.remove(output_path)
-                os.rename(temp_output_path, output_path)
+            # Renombrado del archivo temporal si los formatos coinciden
+            # if input_format == output_format:
+                # if os.path.exists(output_path):
+                #     # os.remove(output_path)
+                # os.rename(temp_output_path, output_path)
 
             return output_path
 
