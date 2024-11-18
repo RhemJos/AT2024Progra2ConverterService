@@ -90,7 +90,7 @@ class AudioConverter(Converter):
     def _convert_audio(self, output_path, temp_output_path, output_format, options):
         # Performs audio conversion using ffmpeg
         try:
-        ffmpeg.input(self.audio_path).output(temp_output_path if self.extension ==
+            ffmpeg.input(self.audio_path).output(temp_output_path if self.extension ==
                                              output_format else output_path, **options).run(overwrite_output=True)
         except ffmpeg.Error as e:
             raise AudioConvertError(f"Ffmped command for audio convertion failed: {e.stderr.decode()}", 500)
