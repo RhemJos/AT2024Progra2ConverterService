@@ -1,3 +1,15 @@
+#
+# @test_audio_converter.py Copyright (c) 2021 Jalasoft.
+# 2643 Av Melchor Perez de Olguin, Colquiri Sud, Cochabamba, Bolivia.
+# <add direccion de jala la paz>
+# All rights reserved. #
+# This software is the confidential and proprietary information of
+# Jalasoft, ("Confidential Information"). You shall not
+# disclose such Confidential Information and shall use it only in
+# accordance with the terms of the license agreement you entered into
+# with Jalasoft.
+#
+
 import unittest
 import os
 from converters.audio_to_audio.audio_converter import AudioConverter
@@ -107,6 +119,14 @@ class TestAudioConverter(unittest.TestCase):
         expected = os.path.join("outputs", "audio_converted_outputs", "audio.m4a")
         self.assertEqual(self.output_path, expected)
 
+    # Positive, without parameters. The default format is mp3
+    def test_audio_converter_without_parameters(self):
+        audio_path = os.path.join("tests", "converters", "audio_to_audio", "audio.wav")
+        converter = AudioConverter(audio_path)
+        self.output_path = converter.convert()
+        expected = os.path.join("outputs", "audio_converted_outputs", "audio.mp3")
+        self.assertEqual(self.output_path, expected)
+
     # Negative, with audio_path as None
     def test_audio_converter_invalid_audio_path_None(self):
         audio_path = None
@@ -151,10 +171,18 @@ class TestAudioConverter(unittest.TestCase):
                 output_format="m4a"
             )
 
-    # Negative, with audio_path which extension was changed - files
-    def test_audio_converter_audio_path_files_extension_changed(self):
+    # Negative, with audio_path which extension was changed - pdf file
+    def test_audio_converter_audio_path_files_extension_changed_pdf(self):
         audio_path = os.path.join("tests", "converters", "audio_to_audio", "PDF.wav")
-        # audio_path = os.path.join("tests", "converters", "audio_to_audio", "outputs","audio_converted_outputs","text.wav")
+        converter = AudioConverter(audio_path)
+        with self.assertRaises(AudioConversionError):
+            self.output_path = converter.convert(
+                output_format="m4a"
+            )
+
+    # Negative, with audio_path which extension was changed - txt file
+    def test_audio_converter_audio_path_files_extension_changed_txt(self):
+        audio_path = os.path.join("tests", "converters", "audio_to_audio", "outputs","audio_converted_outputs","text.wav")
         converter = AudioConverter(audio_path)
         with self.assertRaises(AudioConversionError):
             self.output_path = converter.convert(
@@ -169,14 +197,6 @@ class TestAudioConverter(unittest.TestCase):
             self.output_path = converter.convert(
                 output_format="m4a"
             )
-
-    # --ERROR-- BECAUSE CONVERSION COMPLETED, FORMAT = MP3 BY DEFAULT-- SHOULD WE CHANGE IT?
-    # Negative, without parameters
-    def test_audio_converter_without_parameters(self):
-        audio_path = os.path.join("tests", "converters", "audio_to_audio", "audio.wav")
-        converter = AudioConverter(audio_path)
-        with self.assertRaises(AudioConversionError):
-            self.output_path = converter.convert()
 
     # Negative, with invalid output_format
     def test_audio_converter_with_invalid_output_format(self):
