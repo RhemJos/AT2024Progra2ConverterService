@@ -1,3 +1,15 @@
+#
+# @video_to_video.py Copyright (c) 2021 Jalasoft.
+# 2643 Av Melchor Perez de Olguin, Colquiri Sud, Cochabamba, Bolivia.
+# <add direccion de jala la paz>
+# All rights reserved. #
+# This software is the confidential and proprietary information of
+# Jalasoft, ("Confidential Information"). You shall not
+# disclose such Confidential Information and shall use it only in
+# accordance with the terms of the license agreement you entered into
+# with Jalasoft.
+#
+
 import unittest
 import ffmpeg
 import os
@@ -10,16 +22,14 @@ class TestVideoToVideoConverter(unittest.TestCase):
     def setUp(self):
         self.output_path = ""
 
-    # def tearDown(self):
-    #     # remove converted_videos
-    #     if os.path.exists(self.output_path):
-    #         os.remove(self.output_path)
+    def tearDown(self):
+        # remove converted_videos
+        if os.path.exists(self.output_path):
+            os.remove(self.output_path)
 
     # Positive, with valid video_path and output_format and all kwargs
     def test_video_converter_success(self):
-        # video_path = os.path.join("tests", "converters", "video_to_video", "video.mp4")
         video_path = os.path.join("tests","converters", "video_to_video","video.mp4")
-        # video_path = r".\tests\converters\video_to_video\video.mp4"
         converter = VideoToVideoConverter(video_path)
         self.output_path = converter.convert(
             output_format="avi",
@@ -28,8 +38,7 @@ class TestVideoToVideoConverter(unittest.TestCase):
             audio_codec="mp3",
             audio_channels=2,
         )
-        expected = os.path.join("outputs", "video_to_video_outputs", "video-converted.avi")
-        # expected = os.path.join("tests", "converters", "video_to_video","outputs", "video_to_video_outputs", "video-converted.avi")
+        expected = os.path.join("outputs", "video_converted_outputs", "video-converted.avi")
         self.assertEqual(self.output_path, expected)
 
     # Positive, with valid video_path and output_format no kwargs
@@ -39,7 +48,7 @@ class TestVideoToVideoConverter(unittest.TestCase):
         self.output_path = converter.convert(
             output_format="avi",
         )
-        expected = os.path.join("outputs", "video_to_video_outputs", "video-converted.avi")
+        expected = os.path.join("outputs", "video_converted_outputs", "video-converted.avi")
         self.assertEqual(self.output_path, expected)
 
     # Positive, with valid video_path and output_format and fps
@@ -50,7 +59,7 @@ class TestVideoToVideoConverter(unittest.TestCase):
             output_format="avi",
             fps=24,
         )
-        expected = os.path.join("outputs", "video_to_video_outputs", "video-converted.avi")
+        expected = os.path.join("outputs", "video_converted_outputs", "video-converted.avi")
         self.assertEqual(self.output_path, expected)
 
     # Positive, with valid video_path and output_format and video_codec
@@ -61,7 +70,7 @@ class TestVideoToVideoConverter(unittest.TestCase):
             output_format="avi",
             video_codec="libx265",
         )
-        expected = os.path.join("outputs", "video_to_video_outputs", "video-converted.avi")
+        expected = os.path.join("outputs", "video_converted_outputs", "video-converted.avi")
         self.assertEqual(self.output_path, expected)
 
     # Positive, with valid video_path and output_format and audio_codec
@@ -72,7 +81,7 @@ class TestVideoToVideoConverter(unittest.TestCase):
             output_format="avi",
             audio_codec="mp3",
         )
-        expected = os.path.join("outputs", "video_to_video_outputs", "video-converted.avi")
+        expected = os.path.join("outputs", "video_converted_outputs", "video-converted.avi")
         self.assertEqual(self.output_path, expected)
 
     # Positive, with valid video_path and output_format and audio_channels
@@ -83,7 +92,7 @@ class TestVideoToVideoConverter(unittest.TestCase):
             output_format="avi",
             audio_channels=2,
         )
-        expected = os.path.join("outputs", "video_to_video_outputs", "video-converted.avi")
+        expected = os.path.join("outputs", "video_converted_outputs", "video-converted.avi")
         self.assertEqual(self.output_path, expected)
 
     # Negative, with video_path as None
@@ -130,10 +139,18 @@ class TestVideoToVideoConverter(unittest.TestCase):
                 output_format="avi",
             )
 
-    # Negative, with video_path which extension was changed - files
-    def test_video_converter_input_files_extension_changed(self):
+    # Negative, with video_path which extension was changed - pdf file
+    def test_video_converter_input_files_extension_changed_pdf(self):
         video_path = os.path.join("tests", "converters", "video_to_video", "PDF.mp4")
-        # video_path = os.path.join("tests", "converters", "video_to_video","text.mp4")
+        with self.assertRaises(ffmpeg.Error):
+            converter = VideoToVideoConverter(video_path)
+            self.output_path = converter.convert(
+                output_format="avi",
+            )
+
+    # Negative, with video_path which extension was changed - pdf file
+    def test_video_converter_input_files_extension_changed_txt(self):
+        video_path = os.path.join("tests", "converters", "video_to_video","text.mp4")
         with self.assertRaises(ffmpeg.Error):
             converter = VideoToVideoConverter(video_path)
             self.output_path = converter.convert(
@@ -185,10 +202,9 @@ class TestVideoToVideoConverter(unittest.TestCase):
                 video_codec="invalid_video_codec"
             )
 
-    # --ERROR-- converts file and audio:0KiB, but it should not
     # Negative, with invalid audio codec
     def test_video_converter_with_invalid_audio_codec(self):
-        video_path = os.path.join("tests", "converters", "video_to_video", "video.mp4")
+        video_path = os.path.join("tests", "converters", "video_to_video", "vid.mp4")
         converter = VideoToVideoConverter(video_path)
         with self.assertRaises(ffmpeg.Error):
             self.output_path = converter.convert(
