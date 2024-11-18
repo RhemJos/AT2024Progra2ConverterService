@@ -7,6 +7,7 @@ from converters.audio_to_audio.audio_options import AudioOptions
 from validators.format_validator import FormatValidator
 from validators.float_validator import FloatValidator
 from validators.range_validator import RangeValidator
+from validators.len_validator import LenValidator
 from validators.validator_context import ValidatorContext
 
 
@@ -39,12 +40,8 @@ class AudioConverter(Converter):
         # Set options
         options = self._get_audio_options(**kwargs)
 
-        try:
-            self._convert_audio(output_path, options)
-        except ffmpeg.Error as e:
-            raise AudioConvertError(f"Ffmped command for audio convertion failed: {e.stderr.decode()}", 500)
-        else:
-            return output_path
+        self._convert_audio(output_path, options)
+        return output_path
 
     def validate_params(self, **kwargs):
         validators = [ FormatValidator(kwargs['output_format'], AUDIO_OPTIONS['format'], "Output format") ]
@@ -60,6 +57,9 @@ class AudioConverter(Converter):
         if 'speed' in kwargs:
             validators.append(FloatValidator(kwargs['speed'], True, "Speed") )
             validators.append(RangeValidator(kwargs['speed'], 0.5, 2.0, "Speed") )
+        if "language_channel" in kwargs:
+            audio_streams = self._get_audio_streams()
+            validators.append(LenValidator(audio_streams, kwargs['language_channel'], 'Language channel' ))
         
         validator_context = ValidatorContext(validators, AudioConvertError)
         validator_context.run_validations()
@@ -72,11 +72,21 @@ class AudioConverter(Converter):
 
     def _convert_audio(self, output_path, options):
         # Performs audio conversion using ffmpeg
-        ffmpeg.input(self.audio_path).output(output_path, **options).run(capture_stdout=True, capture_stderr=True)
+        try:
+            ffmpeg.input(self.audio_path).output(output_path, **options).run(capture_stdout=True, capture_stderr=True)
+        except ffmpeg.Error as e:
+            raise AudioConvertError(f"Ffmped command for audio convertion failed: {e.stderr.decode()}", 500)
 
     def _get_audio_options(self, **kwargs):
         # Verifies that options have been built
         opt = AudioOptions.build_options_audio(**kwargs)
         return opt
     
+    def _get_audio_streams(self):
+        # Extracts the audio streams
+        try:
+            result = ffmpeg.probe(self.audio_path, cmd='ffprobe', **{ "select_streams": "a"})
+        except ffmpeg.Error as e:
+            raise AudioConvertError(f"Ffmped command for for validating audio streams failed: {e.stderr.decode()}", 500)
+        return result["streams"]
 
