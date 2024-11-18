@@ -45,7 +45,7 @@ class VideoToImagesConverter(Converter):
         except ffmpeg.Error as e:
             # Capture and show the error if it occurs
             if e.stderr:
-                print(f"Error executing ffmpeg command: {e.stderr.decode('utf8')}")
+                print(f"Error executing ffmpeg command: {e.stderr}")
             else:
                 print("Unknown error while running ffmpeg command.")
             raise

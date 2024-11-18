@@ -1,3 +1,14 @@
+#
+# @test_image_to_image.py Copyright (c) 2021 Jalasoft.
+# 2643 Av Melchor Perez de Olguin, Colquiri Sud, Cochabamba, Bolivia.
+# <add direccion de jala la paz>
+# All rights reserved. #
+# This software is the confidential and proprietary information of
+# Jalasoft, ("Confidential Information"). You shall not
+# disclose such Confidential Information and shall use it only in
+# accordance with the terms of the license agreement you entered into
+# with Jalasoft.
+#
 import unittest
 
 from converters.image_to_image.image_converter import ImageConverter
@@ -78,8 +89,8 @@ class TestImageToImage(unittest.TestCase):
         with self.assertRaises(ValueError) as ve:
             file_path = r'.\tests\converters\image_to_image\image_none.jpeg'
             converter = ImageConverter(file_path)
-            path_converted_image = converter.convert()
-        self.assertIn("El archivo no es una imagen valida", ve.exception.args[0])
+            converter.convert()
+        self.assertIn("The file is not a valid image", ve.exception.args[0])
     
     # Negative test - send image with invalid angle rotation
     def test_converter_image_with_invalid_rotation(self):
@@ -101,7 +112,7 @@ class TestImageToImage(unittest.TestCase):
         converter = ImageConverter(file_path)
         with self.assertRaises(ValueError) as ve:
             converter.convert(resize=[600])
-        self.assertIn("Resize debe ser de tipo (ancho, alto)", ve.exception.args[0])
+        self.assertIn("Resize must be of type (width, height)", ve.exception.args[0])
     
     # Negative test - send image with invalid measurment 
     def test_converter_image_to_image_with_invalid_measurement(self):
@@ -118,7 +129,7 @@ class TestImageToImage(unittest.TestCase):
         converter = ImageConverter(file_path)
         with self.assertRaises(ValueError) as te:
             converter.convert(resize=[1000,1000],resize_type="INVALID")
-        self.assertIn("El tipo de resize ingresado no se reconoce", te.exception.args[0])
+        self.assertIn("The resize type entered is not recognized", te.exception.args[0])
 
     # Negative test - send image with invalid output format
     def test_converter_image_to_image_with_invalid_output_format(self):
@@ -126,7 +137,7 @@ class TestImageToImage(unittest.TestCase):
         converter = ImageConverter(file_path)
         with self.assertRaises(ValueError) as ve:
             converter.convert(output_format="mp3")
-        self.assertEqual("Formato de conversión de imagen no soportado.",ve.exception.args[0])
+        self.assertEqual("Image conversion format not supported.",ve.exception.args[0])
     
 
         
