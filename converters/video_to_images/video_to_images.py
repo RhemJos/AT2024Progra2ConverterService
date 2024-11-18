@@ -1,3 +1,14 @@
+#
+# @video_to_images.py Copyright (c) 2021 Jalasoft.
+# 2643 Av Melchor Perez de Olguin, Colquiri Sud, Cochabamba, Bolivia.
+# <add direccion de jala la paz>
+# All rights reserved. #
+# This software is the confidential and proprietary information of
+# Jalasoft, ("Confidential Information"). You shall not
+# disclose such Confidential Information and shall use it only in
+# accordance with the terms of the license agreement you entered into
+# with Jalasoft.
+#
 import ffmpeg
 import os
 from converters.converter import Converter
@@ -26,13 +37,14 @@ class VideoToImagesConverter(Converter):
         # Ffmpeg command to extract frames
         ffmpeg_command = ffmpeg.input(self.file_path)
 
-        # Applies fps filter
+        # Apply fps filter on input
         ffmpeg_command = ffmpeg_command.filter('fps', fps=fps)
 
-        # Defines command output
+        # Define command output
         ffmpeg_command = ffmpeg_command.output(output_path)
 
         try:
+            # Run the ffmpeg command
             ffmpeg_command.run(overwrite_output=True)
             return frames_folder
         except ffmpeg.Error as e:
