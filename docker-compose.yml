@@ -8,6 +8,7 @@ services:
     volumes:
       - ./uploads:/app/uploads
       - ./outputs:/app/outputs
+#      - ./:/app
     environment:
       - FLASK_ENV=development
       - DB_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-db:5432/${POSTGRES_DB}

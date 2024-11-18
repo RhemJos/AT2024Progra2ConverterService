@@ -9,7 +9,7 @@ class CommandExecutor:
         absolute_file_path = os.path.join( base_dir, relative_path)
         if not os.path.isfile(absolute_file_path):
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), absolute_file_path) #Levanta una excepcion en caso de no hallar el archivo
-        return  absolute_file_path
+        return absolute_file_path
 
     def run_command(self, command):
         try:
