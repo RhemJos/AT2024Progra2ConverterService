@@ -96,7 +96,7 @@ def video_to_video():
             audio_channels=audio_channels
         )
     except VideoConvertError as e:
-        return jsonify({"message": e.get_message()}), e.get_status_code()
+        return jsonify({"error": e.get_message()}), e.get_status_code()
 
     filename = os.path.splitext(os.path.basename(file.file_path))[0]
     video_path_converted = os.path.join('outputs', 'video_converted_outputs', f"{filename}.{output_format}")
