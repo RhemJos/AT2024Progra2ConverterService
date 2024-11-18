@@ -44,7 +44,7 @@ def video_to_images():
 
     converter = VideoToImagesConverter(file.file_path)
     try:
-    converter.convert(fps=1)
+        converter.convert(fps=1)
     except VideoConvertError as e:
         return jsonify({"message": e.get_message()}), e.get_status_code()
 
