@@ -62,13 +62,13 @@ class VideoToVideoConverter(Converter):
         validators = [ FormatValidator(kwargs['output_format'], VIDEO_OPTIONS['format'], "Output format") ]
     
         if kwargs['fps']:
-            validators.append(IntValidator(kwargs['r'], True, "Frames per second") )
+            validators.append(IntValidator(kwargs['fps'], True, "Frames per second") )
         if kwargs['video_codec']:   
-            validators.append(FormatValidator(kwargs['vcodec'], VIDEO_OPTIONS['vcodec'], "Video codec") )
+            validators.append(FormatValidator(kwargs['video_codec'], VIDEO_OPTIONS['vcodec'], "Video codec") )
         if kwargs['audio_codec']:
-            validators.append(FormatValidator(kwargs['acodec'], VIDEO_OPTIONS['acodec'], "Audio codec") )
+            validators.append(FormatValidator(kwargs['audio_codec'], VIDEO_OPTIONS['acodec'], "Audio codec") )
         if kwargs['audio_channels']:
-            validators.append(FormatValidator(kwargs['ac'], VIDEO_OPTIONS['audio_channels'], "Audio channels") )
+            validators.append(FormatValidator(kwargs['audio_channels'], VIDEO_OPTIONS['audio_channels'], "Audio channels") )
 
         validator_context = ValidatorContext(validators, VideoConvertError)
         validator_context.run_validations()

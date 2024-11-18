@@ -8,6 +8,7 @@ from converters.audio_to_audio.audio_converter import AudioConverter
 from converters.extractor.metadataextractor import MetadataExtractor
 from exceptions.image_convert_exception import ImageConvertError
 from exceptions.video_convert_exception import VideoConvertError
+from exceptions.audio_convert_exception import AudioConvertError
 from converters.compressor.compressor import FolderCompressor
 from models import db, File
 import hashlib
@@ -27,13 +28,15 @@ def video_to_images():
     try:
         file_in_db, new_path = get_or_save(video_path)
     except Exception as e:
-        return jsonify({"error": f"No se pudo guardar el archivo en DB: {str(e)}"})
+        return jsonify({"error": f"Saving file in db failed: {str(e)}"})
     
     # if file_in_db:
     #     os.remove(video_path)
     #     return jsonify({"message": "Video ya existe.", "output_path": '/' + new_path.replace("\\", "/")})
-
-    converter = VideoToImagesConverter(new_path)
+    try:
+        converter = VideoToImagesConverter(new_path)
+    except VideoConvertError as e:
+        return jsonify({"message": e.get_message()}), e.get_status_code()
     converter.convert()
 
     os.remove(new_path)
@@ -201,11 +204,9 @@ def convert_audio():
 
     try:
         converted_output_path = converter.convert(**kwargs)
-    except Exception as e:
-        os.remove(output_path)
-        return jsonify({"error": "Conversión de audio fallida."}), 500
+    except AudioConvertError as e:
+        return jsonify({"message": e.get_message()}), e.get_status_code()
 
-    os.remove(output_path)
 
     download_url = (request.host_url + 'api/download-audio/'
                     + os.path.splitext(os.path.basename(output_path))[0] + '.' + output_format)
