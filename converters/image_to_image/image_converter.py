@@ -1,10 +1,22 @@
+#
+# @image_converter.py Copyright (c) 2021 Jalasoft.
+# 2643 Av Melchor Perez de Olguin, Colquiri Sud, Cochabamba, Bolivia.
+# <add direccion de jala la paz>
+# All rights reserved. #
+# This software is the confidential and proprietary information of
+# Jalasoft, ("Confidential Information"). You shall not
+# disclose such Confidential Information and shall use it only in
+# accordance with the terms of the license agreement you entered into
+# with Jalasoft.
+#
+
 from PIL import Image, ImageFilter, ImageOps
 import os
 from converters.converter import Converter
-from utils import get_args
+from helpers.utils import get_args
 
 IMAGE_FILTERS = ("BLUR", "CONTOUR", "DETAIL", "EDGE_ENHANCE", "EDGE_ENHANCE_MORE", "EMBOSS", 
-            "FIND_EDGES", "SHARPEN", "SMOOTH", "SMOOTH_MORE")
+                 "FIND_EDGES", "SHARPEN", "SMOOTH", "SMOOTH_MORE")
 
 VALID_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif']
 
@@ -26,11 +38,11 @@ class ImageConverter(Converter):
         try:
             self.img = Image.open(self.file_path)
         except (IOError):
-            raise ValueError("El archivo no es una imagen valida")
+            raise ValueError("The file is not a valid image")
 
     def __resize(self, measures, resize_type=None):
         if (len(measures) != 2):
-            raise ValueError("Resize debe ser de tipo (ancho, alto)")
+            raise ValueError("Resize must be of type (width, height)")
         width = measures[0]
         height = measures[1]
         if not (width):
@@ -45,7 +57,7 @@ class ImageConverter(Converter):
         
     def __preset_resize(self, measures, resize_type):
         if resize_type not in VALID_RESIZE_TYPES:
-            raise ValueError("El tipo de resize ingresado no se reconoce")
+            raise ValueError("The resize type entered is not recognized")
         match resize_type:
             case "THUMBNAIL":
                 self.img.thumbnail(measures)      
@@ -90,7 +102,7 @@ class ImageConverter(Converter):
             self.__resize(resize, resize_type)
         if output_format:
             if output_format not in VALID_IMAGE_EXTENSIONS:
-                raise ValueError("Formato de conversión de imagen no soportado.")
+                raise ValueError("Image conversion format not supported.")
             else:
                 self.extension = output_format
         
@@ -100,6 +112,3 @@ class ImageConverter(Converter):
         self.img.save(output_path)
 
         return output_path
-    
-
-

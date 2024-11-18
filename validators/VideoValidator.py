@@ -1,4 +1,14 @@
-
+#
+# @VideoValidator.py Copyright (c) 2021 Jalasoft.
+# 2643 Av Melchor Perez de Olguin, Colquiri Sud, Cochabamba, Bolivia.
+# <add direccion de jala la paz>
+# All rights reserved. #
+# This software is the confidential and proprietary information of
+# Jalasoft, ("Confidential Information"). You shall not
+# disclose such Confidential Information and shall use it only in
+# accordance with the terms of the license agreement you entered into
+# with Jalasoft.
+#
 
 class VideoValidator:
     OPTIONS = {
@@ -10,40 +20,40 @@ class VideoValidator:
 
     @staticmethod
     def validate_format(output_format):
-        if output_format not in VideoValidator.OPTIONS["format"]: # Obligatorio
-            return f"Formato de salida '{output_format}' no es válido."
+        if output_format not in VideoValidator.OPTIONS["format"]:  # obligatory
+            return f"Output format '{output_format}' is not valid."
         return None
 
     @staticmethod
     def validate_vcodec(vcodec):
-        if vcodec and vcodec not in VideoValidator.OPTIONS["vcodec"]: # Opcional
-            return f"Códec de video '{vcodec}' no es válido."
+        if vcodec and vcodec not in VideoValidator.OPTIONS["vcodec"]:  # optional
+            return f"Video codec '{vcodec}' is not valid."
         return None
 
     @staticmethod
     def validate_acodec(acodec): 
-        if acodec and acodec not in VideoValidator.OPTIONS["acodec"]: # Opcional
-            return f"Códec de audio '{acodec}' no es válido."
+        if acodec and acodec not in VideoValidator.OPTIONS["acodec"]:  # optional
+            return f"Audio codec '{acodec}' is not valid."
         return None
 
     @staticmethod
-    def validate_fps(fps): # Opcional
+    def validate_fps(fps):  # optional
         if fps:
             try:
                 fps = int(fps)
             except ValueError:
-                return "El número de frames por segundo debe ser un número entero."
+                return "The number of frames per second must be an integer."
         return None
 
     @staticmethod
-    def validate_audio_channels(audio_channels): # Opcional
+    def validate_audio_channels(audio_channels):  # optional
         if audio_channels:
             try:
                 audio_channels = int(audio_channels)
             except ValueError:
-                return "El número de canales de audio debe ser un número entero."
+                return "The number of audio channels must be an integer."
             if audio_channels not in VideoValidator.OPTIONS["audio_channels"]:
-                return f"Canales de audio '{audio_channels}' no es válido. Opciones válidas: {VideoValidator.OPTIONS['audio_channels']}."
+                return f"Audio channels '{audio_channels}' is not valid. Valid options: {VideoValidator.OPTIONS['audio_channels']}."
         return None
 
     @staticmethod
@@ -56,4 +66,4 @@ class VideoValidator:
             VideoValidator.validate_audio_channels(audio_channels)
         ]
 
-        return [error for error in errors if error] # List comprehension
+        return [error for error in errors if error]  # List comprehension
