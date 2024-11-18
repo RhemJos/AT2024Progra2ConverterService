@@ -1,3 +1,15 @@
+#
+# @image_converter.py Copyright (c) 2021 Jalasoft.
+# 2643 Av Melchor Perez de Olguin, Colquiri Sud, Cochabamba, Bolivia.
+# <add direccion de jala la paz>
+# All rights reserved. #
+# This software is the confidential and proprietary information of
+# Jalasoft, ("Confidential Information"). You shall not
+# disclose such Confidential Information and shall use it only in
+# accordance with the terms of the license agreement you entered into
+# with Jalasoft.
+#
+
 from PIL import Image, ImageFilter, ImageOps
 import os
 from converters.converter import Converter
@@ -7,6 +19,7 @@ from validators.range_validator import RangeValidator
 from validators.float_validator import FloatValidator
 from validators.int_validator import IntValidator
 from validators.validator_context import ValidatorContext
+from helpers.utils import get_args
 
 
 IMAGE_OPTIONS = {
@@ -111,5 +124,3 @@ class ImageConverter(Converter):
         validator_context = ValidatorContext(validators, ImageConvertError)
         validator_context.run_validations()
     
-
-

@@ -1,3 +1,15 @@
+#
+# @video_to_video.py Copyright (c) 2021 Jalasoft.
+# 2643 Av Melchor Perez de Olguin, Colquiri Sud, Cochabamba, Bolivia.
+# <add direccion de jala la paz>
+# All rights reserved. #
+# This software is the confidential and proprietary information of
+# Jalasoft, ("Confidential Information"). You shall not
+# disclose such Confidential Information and shall use it only in
+# accordance with the terms of the license agreement you entered into
+# with Jalasoft.
+#
+
 import ffmpeg
 import os
 from converters.converter import Converter
@@ -21,16 +33,12 @@ class VideoToVideoConverter(Converter):
     def convert(self, **kwargs):
         # Validates params
         self.validate_params( **kwargs)
-
         output_format = kwargs.get('output_format')
-        input_format = os.path.splitext(self.file_path)[1][1:].lower()
-        temp_output_path = os.path.join('outputs', 'video_to_video_outputs', f"{self.filename}-converted.{output_format}")
-        output_path = os.path.join('outputs', 'video_to_video_outputs', f"{self.filename}.{output_format}")
-
-        # Initilize ffmpeg command
+        temp_output_path = os.path.join('outputs',
+                                        'video_converted_outputs', f"{self.filename}-converted.{output_format}")
+        output_path = os.path.join('outputs', 'video_converted_outputs', f"{self.filename}.{output_format}")
         ffmpeg_command = ffmpeg.input(self.file_path)
-
-        # Adds optional params
+        # Add optional parameters to the output
         output_args = {}
         if 'fps' in kwargs and kwargs['fps']:
             output_args['r'] = kwargs['fps']
@@ -40,21 +48,11 @@ class VideoToVideoConverter(Converter):
             output_args['acodec'] = kwargs['audio_codec']
         if 'audio_channels' in kwargs and kwargs['audio_channels']:
             output_args['ac'] = int(kwargs['audio_channels'])
-
-        # Construcción del comando ffmpeg con los parámetros opcionales en una sola salida
+        # Building the ffmpeg command with optional parameters in a single output
         ffmpeg_command = ffmpeg_command.output(temp_output_path, **output_args)
-
-        try:
+        try:  # Running the ffmpeg command
             ffmpeg_command.run(overwrite_output=True)
-
-            # Renombrado del archivo temporal si los formatos coinciden
-            # if input_format == output_format:
-                # if os.path.exists(output_path):
-                #     # os.remove(output_path)
-                # os.rename(temp_output_path, output_path)
-
             return output_path
-
         except ffmpeg.Error as e:
             raise VideoConvertError(f"Ffmpeg command execution failed: {e.stderr}" , 500)
 
