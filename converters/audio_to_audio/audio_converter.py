@@ -34,7 +34,7 @@ class AudioConverter(Converter):
                 output_path, temp_output_path, output_format, options)
         except ffmpeg.Error as e:
             raise AudioConversionError(
-                f"Something went wrong with the audio conversion: {e.stderr.decode()}", 500)
+                f"Something went wrong with the audio conversion: {e}", 500)
         else:
             return temp_output_path if self.extension == output_format else output_path
 
