@@ -39,7 +39,7 @@ class VideoToVideoConverter(Converter):
         ffmpeg_command = ffmpeg_command.output(temp_output_path, **output_args)
         try:  # Running the ffmpeg command
             ffmpeg_command.run(overwrite_output=True)
-            return output_path
+            return temp_output_path
         except ffmpeg.Error as e:
             print(f"Error executing ffmpeg command: {e}")
             raise
