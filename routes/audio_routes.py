@@ -65,7 +65,7 @@ def convert_audio():
         return jsonify({"error": "Audio conversion failed."}), 500
 
     download_url = (request.host_url + 'api/download-audio/'
-                    + os.path.splitext(os.path.basename(file.file_path))[0] + '.' + output_format)
+                    + os.path.splitext(os.path.basename(converted_output_path))[0] + '.' + output_format)
 
     if converted_output_path:
         return jsonify({"message": "Audio converted successfully.",
