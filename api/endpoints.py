@@ -68,7 +68,7 @@ def video_to_images():
 @api.route('/video-to-video', methods=['POST'])
 def video_to_video():
     try:
-        # Guardar el archivo utilizando la función save_file
+        # Save file in working directory
         video_path = save_file(request, 'file', 'video_to_video_outputs', valid_formats=["mp4", "mov", "avi", "mkv", "flv", "webm", "ogg", "wmv"])
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
@@ -105,7 +105,7 @@ def video_to_video():
     download_url = request.host_url + 'api/download-video/' + filename + '.' + output_format
 
     return jsonify({
-        "message": "Video procesado con éxito.",
+        "message": "Video processed sucessfully",
         "output_path": '/' + video_path_converted.replace("\\", "/"),
         "download_URL": download_url
     }), 200
