@@ -1,5 +1,5 @@
 #
-# @video_to_video.py Copyright (c) 2021 Jalasoft.
+# @test_video_to_video.py Copyright (c) 2021 Jalasoft.
 # 2643 Av Melchor Perez de Olguin, Colquiri Sud, Cochabamba, Bolivia.
 # <add direccion de jala la paz>
 # All rights reserved. #
