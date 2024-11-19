@@ -20,17 +20,7 @@ from validators.float_validator import FloatValidator
 from validators.range_validator import RangeValidator
 from validators.len_validator import LenValidator
 from validators.validator_context import ValidatorContext
-
-
-
-AUDIO_OPTIONS = {
-            "format": ["mp3", "mov", "avi", "mkv", "flv", "webm", "ogg", "wmv"],
-            "bit_rate": ["32K", "64K", "96K", "128K", "192K", "256K", "320K"],
-            "audio_channels": ['1', '2', '3', '4', '5' ,'6','7' ,'8'],
-            "sample_rate": ['8000', '22050' , '44100' , '48000' , '96000', '192000'],
-            "volume": ['0.5', '1.5'],
-            "speed": [0.5, 2.0] # Range
-        }
+from converters.constants import AUDIO_OPTIONS
 
 
 class AudioConverter(Converter):
@@ -66,7 +56,8 @@ class AudioConverter(Converter):
             validators.append(FormatValidator(kwargs['volume'], AUDIO_OPTIONS['volume'], "Volume") )
         if 'speed' in kwargs:
             validators.append(FloatValidator(kwargs['speed'], True, "Speed") )
-            validators.append(RangeValidator(kwargs['speed'], 0.5, 2.0, "Speed") )
+            validators.append(RangeValidator(kwargs['speed'], 
+                                             AUDIO_OPTIONS['speed_minimum'], AUDIO_OPTIONS['speed_maximum'], "Speed") )
         if "language_channel" in kwargs:
             audio_streams = self._get_audio_streams()
             validators.append(LenValidator(audio_streams, kwargs['language_channel'], 'Language channel' ))

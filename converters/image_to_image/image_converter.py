@@ -16,18 +16,10 @@ from converters.converter import Converter
 from exceptions.image_convert_exception import ImageConvertError
 from validators.format_validator import FormatValidator
 from validators.range_validator import RangeValidator
-from validators.float_validator import FloatValidator
 from validators.int_validator import IntValidator
 from validators.validator_context import ValidatorContext
-from helpers.utils import get_args
+from converters.constants import IMAGE_OPTIONS
 
-
-IMAGE_OPTIONS = {
-    "filter" : ["BLUR", "CONTOUR", "DETAIL", "EDGE_ENHANCE", "EDGE_ENHANCE_MORE", "EMBOSS", 
-            "FIND_EDGES", "SHARPEN", "SMOOTH", "SMOOTH_MORE", "GRAYSCALE"],
-    "extension" : ['jpg', 'jpeg', 'png', 'gif'],
-    "resize_type": ["THUMBNAIL", "COVER", "FIT", "PAD"]
-}
 
 
 class ImageConverter(Converter):
