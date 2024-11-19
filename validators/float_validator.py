@@ -10,7 +10,7 @@ class FloatValidator(Validator):
     def validate(self):
         try:
             float(self.number)
-        except ValueError:
+        except (ValueError, TypeError):
             raise self.error_class(f"{self.param_name} must be a number", 400)
         if self.positive:
             if float(self.number) < 0:

@@ -37,7 +37,7 @@ class ImageConverter(Converter):
             width = self.img.width
         if not (height):
             height = self.img.height
-        measures = (width, height)
+        measures = (int(width), int(height))
         if resize_type:
             self.preset_resize(measures, resize_type)
         else:
@@ -58,7 +58,7 @@ class ImageConverter(Converter):
         self.img = self.img.resize(measures)
 
     def rotate(self, angle):
-        self.img = self.img.rotate(angle, expand=True, fillcolor="black")
+        self.img = self.img.rotate(int(angle), expand=True, fillcolor="black")
 
     def grayscale(self):
         self.img = self.img.convert("L")
@@ -73,10 +73,10 @@ class ImageConverter(Converter):
         self.validate_params(**kwargs)
 
         output_format = kwargs.get('output_format')
-        resize_width = int(kwargs.get('resize_width'))
-        resize_height = int(kwargs.get('resize_height'))
+        resize_width = kwargs.get('resize_width')
+        resize_height = kwargs.get('resize_height')
         resize_type = kwargs.get('resize_type')
-        angle = int(kwargs.get('angle'))
+        angle = kwargs.get('angle')
         filters = kwargs.get('filters')
 
         if angle:
