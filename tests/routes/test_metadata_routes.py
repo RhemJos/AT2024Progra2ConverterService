@@ -29,10 +29,10 @@ class TestMetadataRoutes(unittest.TestCase):
     @patch('routes.metadata_routes.save_file')
     def test_get_metadata_of_a_video(self, mock_save_file, mock_os_remove):
         self.maxDiff = None
-        temp_file = r'.\tests\routes\2024-11-12 10-27-31.mkv'
+        file = r'.\tests\routes\2024-11-12 10-27-31.mkv'
         mock_save_file.return_value =r'.\tests\routes\2024-11-12 10-27-31.mkv'
         
-        with open(temp_file, 'rb') as f:
+        with open(file, 'rb') as f:
             data = {
                 'file': (FileStorage(f), '2024-11-12 10-27-31.mkv')
             }
