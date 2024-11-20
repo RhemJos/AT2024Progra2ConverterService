@@ -98,19 +98,26 @@ class ImageConverter(Converter):
         return output_path
     
     def validate_params(self, **kwargs):
-        if kwargs['output_format']:  
-            validators = [ FormatValidator(kwargs['output_format'], IMAGE_OPTIONS['extension'], "Output format") ]
-        if kwargs['resize_width']:
-            validators.append(IntValidator(kwargs['resize_width'], True, "Resize width") )
-        if kwargs['resize_height']:
-            validators.append(IntValidator(kwargs['resize_height'], True, "Resize height") )
-        if kwargs['resize_type']:
-            validators.append(FormatValidator(kwargs['resize_type'], IMAGE_OPTIONS['resize_type'], "Resize type") )
-        if kwargs['angle']:        
-            validators.append(IntValidator(kwargs['angle'], True, "Angle"))
-            validators.append(RangeValidator(kwargs['angle'], 0, 360, "Angle") )
-        if kwargs['filters']:
-            for filter in kwargs['filters']:
+        output_format = kwargs.get('output_format')
+        resize_width = kwargs.get('resize_width')
+        resize_height = kwargs.get('resize_height')
+        resize_type = kwargs.get('resize_type')
+        angle = kwargs.get('angle')
+        filters = kwargs.get('filters')
+        validators = []
+        if output_format:  
+            validators.append(FormatValidator(output_format, IMAGE_OPTIONS['extension'], "Output format") )
+        if resize_width:
+            validators.append(IntValidator(resize_width, True, "Resize width") )
+        if resize_height:
+            validators.append(IntValidator(resize_height, True, "Resize height") )
+        if resize_type:
+            validators.append(FormatValidator(resize_type, IMAGE_OPTIONS['resize_type'], "Resize type") )
+        if angle:        
+            validators.append(IntValidator(angle, True, "Angle"))
+            validators.append(RangeValidator(angle, 0, 360, "Angle") )
+        if filters:
+            for filter in filters:
                 validators.append(FormatValidator(filter, IMAGE_OPTIONS['filter'], "Filter") )
         
         validator_context = ValidatorContext(validators, ImageConvertError)
