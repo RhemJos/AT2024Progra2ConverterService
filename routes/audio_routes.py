@@ -22,7 +22,7 @@ audio_blueprint = Blueprint('convert-audio', __name__)
 # Audio Converter - Microservice
 @audio_blueprint.route('/convert-audio', methods=['POST'])
 def convert_audio():
-    output_format = request.form.get('output_format', 'mp3')  # Default format
+    output_format = request.form.get('output_format')  # Default format
     bit_rate = request.form.get('bit_rate')
     channels = request.form.get('channels')
     sample_rate = request.form.get('sample_rate')

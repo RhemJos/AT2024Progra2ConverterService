@@ -32,7 +32,7 @@ class AudioConverter(Converter):
         #Validate parameters
         self.validate_params(**kwargs)
 
-        output_format = kwargs.get("output_format", 'mp3')
+        output_format = kwargs.get("output_format")
         output_path = self._get_output_path(output_format)
         temp_output_path = self._get_temp_output_path(output_format)
 
@@ -44,7 +44,8 @@ class AudioConverter(Converter):
         return temp_output_path if self.extension == output_format else output_path
 
     def validate_params(self, **kwargs):
-        validators = [ FormatValidator(kwargs['output_format'], AUDIO_OPTIONS['format'], "Output format") ]
+        output_format = kwargs.get('output_format')
+        validators = [ FormatValidator(output_format, AUDIO_OPTIONS['format'], "Output format") ]
         kwargs = { key: value for key, value in kwargs.items() if value is not None}
         if 'bit_rate' in kwargs:
             validators.append(FormatValidator(kwargs['bit_rate'], AUDIO_OPTIONS['bit_rate'], "Bit rate") )
@@ -84,7 +85,7 @@ class AudioConverter(Converter):
             ffmpeg.input(self.audio_path).output(temp_output_path if self.extension ==
                                              output_format else output_path, **options).run(overwrite_output=True)
         except ffmpeg.Error as e:
-            raise AudioConvertError(f"Ffmped command for audio convertion failed: {e.stderr.decode()}", 500)
+            raise AudioConvertError(f"Ffmped command for audio convertion failed: {e.stderr}", 500)
 
     def _get_audio_options(self, **kwargs):
         # Verifies that options have been built
@@ -96,5 +97,5 @@ class AudioConverter(Converter):
         try:
             result = ffmpeg.probe(self.audio_path, cmd='ffprobe', **{ "select_streams": "a"})
         except ffmpeg.Error as e:
-            raise AudioConvertError(f"Ffmped command for for validating audio streams failed: {e.stderr.decode()}", 500)
+            raise AudioConvertError(f"Ffmped command for for validating audio streams failed: {e.stderr}", 500)
         return result["streams"]

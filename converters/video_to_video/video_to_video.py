@@ -52,7 +52,8 @@ class VideoToVideoConverter(Converter):
             raise VideoConvertError(f"Ffmpeg command execution failed: {e.stderr}" , 500)
 
     def validate_params(self, **kwargs):
-        validators = [ FormatValidator(kwargs['output_format'], VIDEO_OPTIONS['format'], "Output format") ]
+        output_format = kwargs.get('output_format')
+        validators = [ FormatValidator(output_format, VIDEO_OPTIONS['format'], "Output format") ]
     
         if kwargs['fps']:
             validators.append(IntValidator(kwargs['fps'], True, "Frames per second") )
