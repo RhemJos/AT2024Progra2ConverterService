@@ -12,24 +12,29 @@
 import ffmpeg
 import os
 from converters.converter import Converter
-
+from validators.int_validator import IntValidator
+from validators.file_validator import FileValidator
+from validators.minimum_validator import MinimumValidator
+from validators.validator_context import ValidatorContext
+from exceptions.video_convert_exception import VideoConvertError
+from converters.constants import VIDEO_OPTIONS
 
 class VideoToImagesConverter(Converter):
     def __init__(self, video_path):
         super().__init__(video_path)
 
-    def convert(self, output_path=None, **kwargs):
-        # Extract the fps value from kwargs, or use 1 as the default value
+    def convert(self, **kwargs):
         fps = kwargs.get('fps', 1)
 
-        # Convert video into a series of frames
+        # Validate parameters
+        self.validate_params(fps=fps)
+
         frames_folder = os.path.join('outputs', 'video_to_frames_outputs', self.filename)
         os.makedirs(frames_folder, exist_ok=True)
 
-        if output_path is None:
-            output_path = os.path.join(frames_folder, '%d.jpg')
+        output_path = os.path.join(frames_folder, '%d.jpg')
 
-        # ffmpeg command to extract frames
+        # Ffmpeg command to extract frames
         ffmpeg_command = ffmpeg.input(self.file_path)
 
         # Apply fps filter on input
@@ -43,9 +48,13 @@ class VideoToImagesConverter(Converter):
             ffmpeg_command.run(overwrite_output=True)
             return frames_folder
         except ffmpeg.Error as e:
-            # Capture and show the error if it occurs
-            if e.stderr:
-                print(f"Error executing ffmpeg command: {e.stderr}")
-            else:
-                print("Unknown error while running ffmpeg command.")
-            raise
+            raise VideoConvertError(f"ffmpeg command execution failed: {e.stderr}", 500)
+
+
+    def validate_params(self, **kwargs): 
+        validators = [ IntValidator(kwargs['fps'], True, "Fps"),
+                       MinimumValidator(kwargs['fps'], VIDEO_OPTIONS['min_fps'], "Fps" )                     
+                       ]
+
+        validator_context = ValidatorContext(validators, VideoConvertError)
+        validator_context.run_validations()
