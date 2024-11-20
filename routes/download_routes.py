@@ -35,9 +35,3 @@ def download_video(filename):
 @download_blueprint.route('/download-frames/<filename>', methods=['GET'])  # Route: Download Frames Compressed Folder
 def download_frames(filename):
     return send_file_download('video_to_frames_outputs', filename, type_file="Folder")
-
-
-@download_blueprint.route('/download-frame/<foldername>/<filename>', methods=['GET'])  # Route: Download a Frame
-def download_frame(foldername, filename):
-    return send_file_download('video_to_frames_outputs', os.path.join(foldername, filename))
-
