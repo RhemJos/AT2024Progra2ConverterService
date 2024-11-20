@@ -33,7 +33,7 @@ class TestAudioRoutes(unittest.TestCase):
         self.output_path=""
 
     def tearDown(self):
-        if os.path.exists(self.output_path):
+        if self.output_path:
             os.remove("outputs/audio_converted_outputs/"+self.output_path)
 
     # Positive, with valid audio file and output_format and all parameters
