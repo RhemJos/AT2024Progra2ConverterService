@@ -19,5 +19,6 @@ VIDEO_OPTIONS = {
             "format": ["mp4", "mov", "avi", "mkv", "flv", "webm", "ogg", "wmv"],
             "vcodec": ["libx264", "libx265", "mpeg4", "vp8", "vp9", "prores", "huffyuv", "hevc_nvenc"],
             "acodec": ["aac", "mp3", "opus", "ac3", "pcm_s16le", "vorbis"],
-            "audio_channels": ['1', '2', '4', '6', '8']
+            "audio_channels": ['1', '2', '4', '6', '8'],
+            "min_fps": 1
         }
