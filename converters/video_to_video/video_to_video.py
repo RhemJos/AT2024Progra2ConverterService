@@ -49,19 +49,19 @@ class VideoToVideoConverter(Converter):
             ffmpeg_command.run(overwrite_output=True)
             return temp_output_path
         except ffmpeg.Error as e:
-            raise VideoConvertError(f"Ffmpeg command execution failed: {e.stderr}" , 500)
+            raise VideoConvertError(f"Ffmpeg command execution failed: {e}" , 500)
 
     def validate_params(self, **kwargs):
         output_format = kwargs.get('output_format')
         validators = [ FormatValidator(output_format, VIDEO_OPTIONS['format'], "Output format") ]
     
-        if kwargs['fps']:
+        if kwargs.get('fps'):
             validators.append(IntValidator(kwargs['fps'], True, "Frames per second") )
-        if kwargs['video_codec']:   
+        if kwargs.get('video_codec'):
             validators.append(FormatValidator(kwargs['video_codec'], VIDEO_OPTIONS['vcodec'], "Video codec") )
-        if kwargs['audio_codec']:
+        if kwargs.get('audio_codec'):
             validators.append(FormatValidator(kwargs['audio_codec'], VIDEO_OPTIONS['acodec'], "Audio codec") )
-        if kwargs['audio_channels']:
+        if kwargs.get('audio_channels'):
             validators.append(FormatValidator(kwargs['audio_channels'], VIDEO_OPTIONS['audio_channels'], "Audio channels") )
 
         validator_context = ValidatorContext(validators, VideoConvertError)
