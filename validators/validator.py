@@ -1,5 +1,5 @@
 #
-# @audio_exception.py Copyright (c) 2021 Jalasoft.
+# @Validator.py Copyright (c) 2021 Jalasoft.
 # 2643 Av Melchor Perez de Olguin, Colquiri Sud, Cochabamba, Bolivia.
 # <add direccion de jala la paz>
 # All rights reserved. #
@@ -9,15 +9,20 @@
 # accordance with the terms of the license agreement you entered into
 # with Jalasoft.
 #
-class AudioConversionError(Exception):
-    # Exception for audio conversion errors
-    def __init__(self, message, status_code):
-        super().__init__(message)
-        self.status_code = status_code
-        self.message = message
+from abc import ABC, abstractmethod
 
-    def get_status_code(self):
-        return self.status_code
 
-    def get_message(self):
-        return self.message
+class Validator(ABC):
+    def __init__(self, param_name):
+        self.error_class = Exception()
+        self.param_name = param_name
+        
+    @abstractmethod
+    def validate(self):
+        pass
+
+    def set_error_class(self, error_class):
+        self.error_class = error_class
+
+        
+
