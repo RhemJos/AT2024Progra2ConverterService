@@ -13,8 +13,14 @@
 import os
 import ffmpeg
 from converters.converter import Converter
-from converters.audio_to_audio.audio_exception import AudioConversionError
+from exceptions.audio_convert_exception import AudioConvertError
 from converters.audio_to_audio.audio_options import AudioOptions
+from validators.format_validator import FormatValidator
+from validators.float_validator import FloatValidator
+from validators.range_validator import RangeValidator
+from validators.len_validator import LenValidator
+from validators.validator_context import ValidatorContext
+from converters.constants import AUDIO_OPTIONS
 
 
 class AudioConverter(Converter):
@@ -22,22 +28,45 @@ class AudioConverter(Converter):
         self.audio_path = audio_path
         super().__init__(audio_path)
 
-    def convert(self, output_format='mp3', **kwargs):
+    def convert(self, **kwargs):
+        #Validate parameters
+        self.validate_params(**kwargs)
+
+        output_format = kwargs.get("output_format")
         output_path = self._get_output_path(output_format)
         temp_output_path = self._get_temp_output_path(output_format)
 
         # Get the options
         options = self._get_audio_options(**kwargs)
 
-        try:
-            self._convert_audio(
-                output_path, temp_output_path, output_format, options)
-        except ffmpeg.Error as e:
-            raise AudioConversionError(
-                f"Something went wrong with the audio conversion: {e.stderr.decode()}", 500)
-        else:
-            return temp_output_path if self.extension == output_format else output_path
+        self._convert_audio(
+            output_path, temp_output_path, output_format, options)
+        return temp_output_path if self.extension == output_format else output_path
 
+    def validate_params(self, **kwargs):
+        output_format = kwargs.get('output_format')
+        validators = [ FormatValidator(output_format, AUDIO_OPTIONS['format'], "Output format") ]
+        kwargs = { key: value for key, value in kwargs.items() if value is not None}
+        if 'bit_rate' in kwargs:
+            validators.append(FormatValidator(kwargs['bit_rate'], AUDIO_OPTIONS['bit_rate'], "Bit rate") )
+        if 'channels' in kwargs:
+            validators.append(FormatValidator(kwargs['channels'], AUDIO_OPTIONS['audio_channels'], "Audio channels") )
+        if 'sample_rate' in kwargs:
+            validators.append(FormatValidator(kwargs['sample_rate'], AUDIO_OPTIONS['sample_rate'], "Sample rate") )
+        if 'volume' in kwargs:
+            validators.append(FormatValidator(kwargs['volume'], AUDIO_OPTIONS['volume'], "Volume") )
+        if 'speed' in kwargs:
+            validators.append(FloatValidator(kwargs['speed'], True, "Speed") )
+            validators.append(RangeValidator(kwargs['speed'], 
+                                             AUDIO_OPTIONS['speed_minimum'], AUDIO_OPTIONS['speed_maximum'], "Speed") )
+        if "language_channel" in kwargs:
+            audio_streams = self._get_audio_streams()
+            validators.append(LenValidator(audio_streams, kwargs['language_channel'], 'Language channel' ))
+        
+        validator_context = ValidatorContext(validators, AudioConvertError)
+        validator_context.run_validations()
+
+    
     def _get_output_path(self, output_format):
         # Generate output path for the converted file and change format
         output_file = os.path.splitext(os.path.basename(self.audio_path))[0] + '.' + output_format
@@ -52,13 +81,21 @@ class AudioConverter(Converter):
 
     def _convert_audio(self, output_path, temp_output_path, output_format, options):
         # Performs audio conversion using ffmpeg
-        ffmpeg.input(self.audio_path).output(temp_output_path if self.extension ==
+        try:
+            ffmpeg.input(self.audio_path).output(temp_output_path if self.extension ==
                                              output_format else output_path, **options).run(overwrite_output=True)
+        except ffmpeg.Error as e:
+            raise AudioConvertError(f"Ffmped command for audio convertion failed: {e.stderr}", 500)
 
     def _get_audio_options(self, **kwargs):
         # Verifies that options have been built
         opt = AudioOptions.build_options_audio(**kwargs)
-        if opt is None:
-            raise AudioConversionError("Error building audio options", 500)
-
         return opt
+    
+    def _get_audio_streams(self):
+        # Extracts the audio streams
+        try:
+            result = ffmpeg.probe(self.audio_path, cmd='ffprobe', **{ "select_streams": "a"})
+        except ffmpeg.Error as e:
+            raise AudioConvertError(f"Ffmped command for for validating audio streams failed: {e.stderr}", 500)
+        return result["streams"]
