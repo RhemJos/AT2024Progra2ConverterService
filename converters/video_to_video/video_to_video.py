@@ -17,29 +17,28 @@ from converters.converter import Converter
 
 class VideoToVideoConverter(Converter):
     def __init__(self, video_path):
-        super().__init__(video_path)
+        super().__init__(video_path)  # Calls the parent constructor to initialize the file path
 
     def convert(self, output_format=None, **kwargs):
         temp_output_path = os.path.join('outputs',
                                         'video_converted_outputs', f"{self.filename}-converted.{output_format}")
         output_path = os.path.join('outputs', 'video_converted_outputs', f"{self.filename}.{output_format}")
-        # Initialize ffmpeg command with input
+        # Initialize ffmpeg command with input video
         ffmpeg_command = ffmpeg.input(self.file_path)
         # Add optional parameters to the output
         output_args = {}
         if 'fps' in kwargs and kwargs['fps']:
-            output_args['r'] = int(kwargs['fps'])
+            output_args['r'] = int(kwargs['fps'])  # Set frame rate
         if 'video_codec' in kwargs and kwargs['video_codec']:
-            output_args['vcodec'] = kwargs['video_codec']
+            output_args['vcodec'] = kwargs['video_codec']  # Set video codec
         if 'audio_codec' in kwargs and kwargs['audio_codec']:
-            output_args['acodec'] = kwargs['audio_codec']
+            output_args['acodec'] = kwargs['audio_codec']  # Set audio codec
         if 'audio_channels' in kwargs and kwargs['audio_channels']:
-            output_args['ac'] = int(kwargs['audio_channels'])
+            output_args['ac'] = int(kwargs['audio_channels'])  # Set audio channels
         # Building the ffmpeg command with optional parameters in a single output
         ffmpeg_command = ffmpeg_command.output(temp_output_path, **output_args)
         try:  # Running the ffmpeg command
             ffmpeg_command.run(overwrite_output=True)
-            return output_path
+            return output_path  # Return the final output path
         except ffmpeg.Error as e:
-            print(f"Error executing ffmpeg command: {e}")
-            raise
+            raise  # Raise the exception if an error occurs

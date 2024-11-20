@@ -16,7 +16,7 @@ from converters.converter import Converter
 
 class VideoToImagesConverter(Converter):
     def __init__(self, video_path):
-        super().__init__(video_path)
+        super().__init__(video_path)  # Calls the parent constructor to initialize the file path
 
     def convert(self, output_path=None, **kwargs):
         # Extract the fps value from kwargs, or use 1 as the default value
@@ -44,8 +44,4 @@ class VideoToImagesConverter(Converter):
             return frames_folder
         except ffmpeg.Error as e:
             # Capture and show the error if it occurs
-            if e.stderr:
-                print(f"Error executing ffmpeg command: {e.stderr.decode('utf8')}")
-            else:
-                print("Unknown error while running ffmpeg command.")
-            raise
+            raise VideoConvertError(f"ffmpeg command execution failed: {e.stderr}", 500)

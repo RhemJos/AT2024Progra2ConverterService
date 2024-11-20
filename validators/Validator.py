@@ -13,7 +13,7 @@ from abc import ABC, abstractmethod
 import os
 
 
-class Validator(ABC):
+class Validator(ABC):  # Abstract base class for file validators
     def __init__(self, file_path):
-        self.file_path = file_path
-        self.filename = os.path.splitext(os.path.basename(file_path))[0]
+        self.file_path = file_path  # Store the full file path
+        self.filename = os.path.splitext(os.path.basename(file_path))[0]   # Extract the file name without extension

@@ -10,24 +10,24 @@
 # with Jalasoft.
 #
 class AudioOptions:
-    def __init__(self):
+    def __init__(self):  # Initialize the class
         pass
 
-    # Build options
+    # Build audio processing options based on input arguments
     @staticmethod
     def build_options_audio(**kwargs) -> dict:
-        options = {'vn': None}
-        if 'bit_rate' in kwargs:
+        options = {'vn': None}  # Initialize options with 'vn' key (no video)
+        if 'bit_rate' in kwargs:  # Set bit rate if provided
             options['b:a'] = kwargs['bit_rate']
-        if 'channels' in kwargs:
+        if 'channels' in kwargs:  # Set number of channels if provided
             options['ac'] = kwargs['channels']
-        if 'sample_rate' in kwargs:
+        if 'sample_rate' in kwargs:  # Set sample rate if provided
             options['ar'] = kwargs['sample_rate']
-        if 'volume' in kwargs:
+        if 'volume' in kwargs:  # Set volume if provided
             options['af'] = f"volume={kwargs['volume']}"
-        if 'language_channel' in kwargs:
+        if 'language_channel' in kwargs:  # Set language channel if provided
             options['map'] = f"0:a:{kwargs['language_channel']}"
-        if 'speed' in kwargs:
+        if 'speed' in kwargs:  # Set speed if provided and within valid range
             speed = float(kwargs['speed'])
             if 0.5 <= speed <= 2.0:
                 if 'af' in options:
@@ -37,4 +37,4 @@ class AudioOptions:
             else:
                 print("Speed must be between 0.5x and 2.0x")
                 return None
-        return options
+        return options  # Return the final options dictionary

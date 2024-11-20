@@ -10,7 +10,7 @@
 # with Jalasoft.
 #
 
-class VideoValidator:
+class VideoValidator:  # Define valid options for video format, video codec, audio codec, and audio channels
     OPTIONS = {
         "format": ["mp4", "mov", "avi", "mkv", "flv", "webm", "ogg", "wmv"],
         "vcodec": ["libx264", "libx265", "mpeg4", "vp8", "vp9", "prores", "huffyuv", "hevc_nvenc"],
@@ -19,25 +19,25 @@ class VideoValidator:
     }
 
     @staticmethod
-    def validate_format(output_format):
+    def validate_format(output_format):  # Validate if the output format is in the allowed list
         if output_format not in VideoValidator.OPTIONS["format"]:  # obligatory
             return f"Output format '{output_format}' is not valid."
         return None
 
     @staticmethod
-    def validate_vcodec(vcodec):
+    def validate_vcodec(vcodec):  # Validate if the video codec is in the allowed list (optional)
         if vcodec and vcodec not in VideoValidator.OPTIONS["vcodec"]:  # optional
             return f"Video codec '{vcodec}' is not valid."
         return None
 
     @staticmethod
-    def validate_acodec(acodec): 
+    def validate_acodec(acodec):  # Validate if the audio codec is in the allowed list (optional)
         if acodec and acodec not in VideoValidator.OPTIONS["acodec"]:  # optional
             return f"Audio codec '{acodec}' is not valid."
         return None
 
     @staticmethod
-    def validate_fps(fps):  # optional
+    def validate_fps(fps):  # Validate if frames per second is a valid integer (optional)
         if fps:
             try:
                 fps = int(fps)
@@ -45,7 +45,7 @@ class VideoValidator:
                 return "The number of frames per second must be an integer."
         return None
 
-    @staticmethod
+    @staticmethod  # Validate if the number of audio channels is an integer and in the allowed list
     def validate_audio_channels(audio_channels):  # optional
         if audio_channels:
             try:
@@ -56,7 +56,7 @@ class VideoValidator:
                 return f"Audio channels '{audio_channels}' is not valid. Valid options: {VideoValidator.OPTIONS['audio_channels']}."
         return None
 
-    @staticmethod
+    @staticmethod  # Validate all parameters and collect errors in a list
     def validate(output_format, vcodec, acodec, fps, audio_channels):
         errors = [
             VideoValidator.validate_format(output_format),

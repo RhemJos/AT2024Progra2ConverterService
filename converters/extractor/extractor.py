@@ -13,9 +13,9 @@ from abc import ABC, abstractmethod
 
 
 class Extractor(ABC):
-    def __init__(self, file_path):
+    def __init__(self, file_path):  # Initialize with file path
         self.file_path = file_path
     
     @abstractmethod
-    def extract(self):
+    def extract(self):  # Abstract method for extraction (to be implemented in subclasses)
         ''' Implement extraction method '''

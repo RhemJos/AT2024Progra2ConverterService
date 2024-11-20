@@ -19,23 +19,23 @@ from converters.audio_to_audio.audio_options import AudioOptions
 
 class AudioConverter(Converter):
     def __init__(self, audio_path):
-        self.audio_path = audio_path
-        super().__init__(audio_path)
+        self.audio_path = audio_path  # Store the audio file path
+        super().__init__(audio_path)  # Call parent constructor
 
     def convert(self, output_format='mp3', **kwargs):
-        output_path = self._get_output_path(output_format)
-        temp_output_path = self._get_temp_output_path(output_format)
+        output_path = self._get_output_path(output_format)  # Get the final output file path
+        temp_output_path = self._get_temp_output_path(output_format)  # Get temporary output file path
 
-        # Get the options
+        # Get the options for conversion
         options = self._get_audio_options(**kwargs)
 
-        try:
+        try:  # Convert the audio
             self._convert_audio(
                 output_path, temp_output_path, output_format, options)
-        except ffmpeg.Error as e:
+        except ffmpeg.Error as e:   # Handle conversion error
             raise AudioConversionError(
                 f"Something went wrong with the audio conversion: {e.stderr.decode()}", 500)
-        else:
+        else:  # Return the appropriate output path
             return temp_output_path if self.extension == output_format else output_path
 
     def _get_output_path(self, output_format):

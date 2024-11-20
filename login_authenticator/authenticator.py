@@ -12,7 +12,7 @@
 from abc import ABC, abstractmethod
 
 
-class AuthenticationService(ABC):
-    @abstractmethod
+class AuthenticationService(ABC):  # Define an abstract base class for authentication services
+    @abstractmethod  # Define an abstract method for authentication, which must be implemented by subclasses
     def authenticate(self, username, password):
         pass

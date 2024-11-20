@@ -15,20 +15,20 @@ from helpers.endpoints_helper import save_file
 from converters.extractor.metadataextractor import MetadataExtractor
 import os
 
-metadata_blueprint = Blueprint('get-metadata', __name__)
+metadata_blueprint = Blueprint('get-metadata', __name__)  # Create a Blueprint for metadata-related routes
 
 
-# Meda data extractor - Microservice
+# Meda data extractor - Microservice - Route for extracting metadata from a file
 @metadata_blueprint.route('/get-metadata', methods=['POST'])
 def get_metadata():
-    try:
+    try:  # Save the uploaded file and retrieve its path
         file_path = save_file(request, 'file', 'metadata_outputs')
-    except ValueError as e:
+    except ValueError as e:  # Return error if saving fails
         return jsonify({"error": e.args[0]}), 400
-
+    # Initialize metadata extractor and extract metadata
     meta_data_extractor = MetadataExtractor(file_path)
     result = meta_data_extractor.extract()
-    os.remove(file_path)
-    return jsonify(result)
+    os.remove(file_path)  # Remove the uploaded file after processing
+    return jsonify(result)  # Return the extracted metadata as JSON
 
 
