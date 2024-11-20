@@ -24,3 +24,5 @@ class Validator(ABC):
     def set_error_class(self, error_class):
         self.error_class = error_class
 
+        
+
