@@ -13,6 +13,8 @@ from subprocess import CalledProcessError
 import unittest
 from unittest.mock import MagicMock, patch
 from converters.extractor.metadataextractor import MetadataExtractor
+from exceptions.cmd_execute_exception import CmdExecutionError
+from exceptions.metadata_extract_exception import MetadataExtractationError
 
 
 class TestMetadataextractor(unittest.TestCase):
@@ -79,7 +81,7 @@ class TestMetadataextractor(unittest.TestCase):
     @patch("converters.extractor.metadataextractor.CommandExecutor")
     @patch("converters.extractor.metadataextractor.platform.system")
     def test_metadataextractor_linux(self, mock_platform_system, MockCommandExecutor):
-        # Configurar mocks
+        # Configure mocks
         self.maxDiff = None
         mock_platform_system.return_value = "Linux"
         mock_cmd = MockCommandExecutor.return_value
@@ -102,9 +104,12 @@ class TestMetadataextractor(unittest.TestCase):
         expected_result = {'key': ' value'}
         self.assertEqual(result,expected_result)
         
-    # Negative test - give metadata extractor a invalid file path
-    def test_metadataextractor_with_invalid_file_path(self):
-        self.maxDiff = None
-        with self.assertRaises(CalledProcessError) as cpe:
-            meta_data_extractor = MetadataExtractor( r'.\tests\converters\extractor\invalid image.jpeg')
+    # Negative test - give metadata extractor a cmdexecution error
+    @patch("converters.extractor.metadataextractor.CommandExecutor")
+    def test_metadataextractor_with_invalid_file_path(self, MockCommandExecutor):
+        mock_cmd = MockCommandExecutor.return_value
+        mock_cmd.run_command.side_effect = CmdExecutionError("Command failed", 400)
+        with self.assertRaises(MetadataExtractationError) as cpe:
+            meta_data_extractor = MetadataExtractor( r'.\tests\converters\extractor\invalidimage.jpeg')
             meta_data_extractor.extract()
+        self.assertIn("Exiftool command execution failed: Command executor: Command failed", cpe.exception.args[0])

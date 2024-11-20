@@ -39,9 +39,9 @@ class ImageConverter(Converter):
             height = self.img.height
         measures = (int(width), int(height))
         if resize_type:
-            self.__preset_resize(measures, resize_type)
+            self.preset_resize(measures, resize_type)
         else:
-            self.__custom_resize(measures)
+            self.custom_resize(measures)
         
     def preset_resize(self, measures, resize_type):
         match resize_type:
@@ -54,16 +54,16 @@ class ImageConverter(Converter):
             case "PAD":
                 self.img = ImageOps.pad(self.img, measures, color="#ffff")    
                 
-    def __custom_resize(self, measures):
+    def custom_resize(self, measures):
         self.img = self.img.resize(measures)
 
     def rotate(self, angle):
         self.img = self.img.rotate(int(angle), expand=True, fillcolor="black")
 
-    def __grayscale(self):
+    def grayscale(self):
         self.img = self.img.convert("L")
 
-    def __apply_filter(self, filter_name):
+    def apply_filter(self, filter_name):
         filter_name = getattr(ImageFilter, filter_name, None)
         if filter_name:
             self.img = self.img.filter(filter_name)
