@@ -13,6 +13,7 @@
 from flask import Blueprint, request, jsonify
 from helpers.endpoints_helper import save_file, get_or_save
 from converters.audio_to_audio.audio_converter import AudioConverter
+from exceptions.audio_convert_exception import AudioConvertError
 import os
 
 audio_blueprint = Blueprint('convert-audio', __name__)
@@ -21,7 +22,7 @@ audio_blueprint = Blueprint('convert-audio', __name__)
 # Audio Converter - Microservice
 @audio_blueprint.route('/convert-audio', methods=['POST'])
 def convert_audio():
-    output_format = request.form.get('output_format', 'mp3')  # Default format
+    output_format = request.form.get('output_format')  # Default format
     bit_rate = request.form.get('bit_rate')
     channels = request.form.get('channels')
     sample_rate = request.form.get('sample_rate')
@@ -43,6 +44,7 @@ def convert_audio():
     converter = AudioConverter(file.file_path)
 
     kwargs = {}
+    kwargs['output_format'] = output_format
     if bit_rate:
         kwargs['bit_rate'] = bit_rate
     if channels:
@@ -57,12 +59,12 @@ def convert_audio():
         kwargs['speed'] = speed
 
     try:
-        converted_output_path = converter.convert(output_format, **kwargs)
-    except Exception as e:
-        return jsonify({"error": "Audio conversion failed."}), 500
+        converted_output_path = converter.convert(**kwargs)
+    except AudioConvertError as e:
+        return jsonify({"error": e.get_message()}), e.get_status_code()
 
     download_url = (request.host_url + 'api/download-audio/'
-                    + os.path.splitext(os.path.basename(file.file_path))[0] + '.' + output_format)
+                    + os.path.splitext(os.path.basename(converted_output_path))[0] + '.' + output_format)
 
     if converted_output_path:
         return jsonify({"message": "Audio converted successfully.",

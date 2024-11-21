@@ -12,7 +12,8 @@
 
 from flask import Blueprint, request, jsonify
 from helpers.endpoints_helper import save_file, get_or_save
-from converters.image_to_image.image_converter import ImageConverter, IMAGE_FILTERS, VALID_IMAGE_EXTENSIONS
+from converters.image_to_image.image_converter import ImageConverter, IMAGE_OPTIONS
+from exceptions.image_convert_exception import ImageConvertError
 import os
 
 image_blueprint = Blueprint('image_routes', __name__)
@@ -22,7 +23,7 @@ image_blueprint = Blueprint('image_routes', __name__)
 @image_blueprint.route('/image-configuration', methods=['POST'])
 def image_configuration():
     try:
-        image_path = save_file(request, 'image', 'image_converted_outputs', VALID_IMAGE_EXTENSIONS)
+        image_path = save_file(request, 'image', 'image_converted_outputs', IMAGE_OPTIONS['extension'])
     except ValueError as e:
         return jsonify({"error": e.args[0]}), 400
 
@@ -30,33 +31,27 @@ def image_configuration():
     try:
         file_in_db, file = get_or_save(image_path)
     except Exception as e:
-        return jsonify({"error": f"No se pudo guardar el archivo en DB: {str(e)}"})
+        return jsonify({"error": f"Failed to save file to DB: {str(e)}"})
 
     try:
         converter = ImageConverter(file.file_path)
-    except ValueError:
-        return jsonify({"error": "No fue posible cargar la imagen"}), 400
+    except ImageConvertError as e:
+        return jsonify({"error": e.args[0]}), 400
 
-    resize_width = request.form.get('resize_width', type=int)
-    resize_height = request.form.get('resize_height', type=int)
-    resize_measures = (resize_width, resize_height) if resize_width or resize_height else None
-    resize_type = request.form.get('resize_type', default=None)
-    format = request.form.get('format', default=None)
-    rotate_angle = request.form.get('rotate', type=int)
-    grayscale = True if 'GRAYSCALE' in request.form else False
-    filters = []
-    for filter in IMAGE_FILTERS:
-        if filter in request.form:
-            filters.append(filter)
+    resize_width = request.form.get('resize_width')
+    resize_height = request.form.get('resize_height')
+    resize_type = request.form.get('resize_type')
+    format = request.form.get('output_format')
+    rotate_angle = request.form.get('rotate')
+    filters = request.form.getlist('filter')
     try:
-        output_path = converter.convert(resize=resize_measures, resize_type=resize_type, output_format=format,
-                                        angle=rotate_angle, grayscale=grayscale, filters=filters)
-    except ValueError as e:
-        return jsonify({"message": e}), 400
+        output_path = converter.convert(resize_width=resize_width, resize_height=resize_height, resize_type=resize_type, 
+                                        output_format=format, angle=rotate_angle, filters=filters)
+    except ImageConvertError as e:
+        return jsonify({"error": e.get_message()}), e.get_status_code()
 
     download_url = request.host_url + '/api/download-image/' + os.path.basename(output_path)
     return jsonify({
         "message": "Image processed and saved successfully.",
         "output_path": "/" + output_path.replace("\\", "/"),
         "download_URL": download_url}), 200
-

@@ -22,7 +22,8 @@ from routes.login_routes import login_blueprint
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DB_URL')
-
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///file_paths.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
 with app.app_context():

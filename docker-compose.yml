@@ -6,9 +6,9 @@ services:
     ports:
       - "9090:9090"
     volumes:
-#      - ./uploads:/app/uploads
-#      - ./outputs:/app/outputs
       - ./:/app
+      # - ./uploads:/app/uploads
+      # - ./outputs:/app/outputs
     environment:
       - FLASK_ENV=development
       - DB_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-db:5432/${POSTGRES_DB}
