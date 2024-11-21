@@ -85,7 +85,7 @@ class AudioConverter(Converter):
             ffmpeg.input(self.audio_path).output(temp_output_path if self.extension ==
                                              output_format else output_path, **options).run(overwrite_output=True)
         except ffmpeg.Error as e:
-            raise AudioConvertError(f"Ffmped command for audio convertion failed: {e.stderr}", 500)
+            raise AudioConvertError(f"Ffmpeg command for audio convertion failed: {e}", 500)
 
     def _get_audio_options(self, **kwargs):
         # Verifies that options have been built
@@ -97,5 +97,5 @@ class AudioConverter(Converter):
         try:
             result = ffmpeg.probe(self.audio_path, cmd='ffprobe', **{ "select_streams": "a"})
         except ffmpeg.Error as e:
-            raise AudioConvertError(f"Ffmped command for for validating audio streams failed: {e.stderr}", 500)
+            raise AudioConvertError(f"Ffmpeg command for for validating audio streams failed: {e}", 500)
         return result["streams"]
