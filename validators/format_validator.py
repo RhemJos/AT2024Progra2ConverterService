@@ -1,4 +1,4 @@
-from validators.Validator import Validator
+from validators.validator import Validator
 
 
 class FormatValidator(Validator):

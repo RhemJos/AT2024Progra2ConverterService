@@ -27,5 +27,5 @@ class LoginService(AuthenticationService):
             'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
         }, 'default_secret_key', algorithm='HS256')  # Hard code
 
-        return jsonify({'token': token}), 200
+        return jsonify({'access_token': token}), 200
 
