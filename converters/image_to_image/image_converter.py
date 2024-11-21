@@ -13,51 +13,37 @@
 from PIL import Image, ImageFilter, ImageOps
 import os
 from converters.converter import Converter
-from helpers.utils import get_args
+from exceptions.image_convert_exception import ImageConvertError
+from validators.format_validator import FormatValidator
+from validators.range_validator import RangeValidator
+from validators.int_validator import IntValidator
+from validators.validator_context import ValidatorContext
+from converters.constants import IMAGE_OPTIONS
 
-IMAGE_FILTERS = ("BLUR", "CONTOUR", "DETAIL", "EDGE_ENHANCE", "EDGE_ENHANCE_MORE", "EMBOSS", 
-                 "FIND_EDGES", "SHARPEN", "SMOOTH", "SMOOTH_MORE")
-
-VALID_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif']
-
-VALID_RESIZE_TYPES = ("THUMBNAIL", "COVER", "FIT", "PAD")
 
 
 class ImageConverter(Converter):
-    parameters = {
-            'resize' : None,
-            'resize_type' : None,
-            'output_format' : None,
-            'angle' : None,
-            'grayscale' : None,
-            'filters' : None,
-        }
-    
     def __init__(self, file_path):
         super().__init__(file_path)
         try:
             self.img = Image.open(self.file_path)
         except (IOError):
-            raise ValueError("The file is not a valid image")
+            raise ImageConvertError(f"{self.file_path} is not a valid image", 400)
 
-    def resize(self, measures, resize_type=None):
-        if (len(measures) != 2):
-            raise ValueError("Resize must be of type (width, height)")
-        width = measures[0]
-        height = measures[1]
+    def resize(self, width, height, resize_type=None):
+        width = width
+        height = height
         if not (width):
             width = self.img.width
         if not (height):
             height = self.img.height
-        measures = (width, height)
+        measures = (int(width), int(height))
         if resize_type:
             self.preset_resize(measures, resize_type)
         else:
             self.custom_resize(measures)
         
     def preset_resize(self, measures, resize_type):
-        if resize_type not in VALID_RESIZE_TYPES:
-            raise ValueError("The resize type entered is not recognized")
         match resize_type:
             case "THUMBNAIL":
                 self.img.thumbnail(measures)      
@@ -72,7 +58,7 @@ class ImageConverter(Converter):
         self.img = self.img.resize(measures)
 
     def rotate(self, angle):
-        self.img = self.img.rotate(angle, expand=True, fillcolor="black")
+        self.img = self.img.rotate(int(angle), expand=True, fillcolor="black")
 
     def grayscale(self):
         self.img = self.img.convert("L")
@@ -82,33 +68,58 @@ class ImageConverter(Converter):
         if filter_name:
             self.img = self.img.filter(filter_name)
 
-    def convert(self, output_format=None, **kwargs):
-        args = get_args(self.parameters, kwargs)
-        resize = args['resize']
-        resize_type = args['resize_type']
-        output_format = args['output_format']
-        angle = args['angle']
-        grayscale = args['grayscale']
-        filters = args['filters']
-        
+    def convert(self, **kwargs):
+        #validate params
+        self.validate_params(**kwargs)
+
+        output_format = kwargs.get('output_format')
+        resize_width = kwargs.get('resize_width')
+        resize_height = kwargs.get('resize_height')
+        resize_type = kwargs.get('resize_type')
+        angle = kwargs.get('angle')
+        filters = kwargs.get('filters')
+
         if angle:
             self.rotate(angle)
-        if grayscale:
-            self.grayscale()
         if filters:
+            if 'GRAYSCALE' in filters:
+                self.grayscale()
             for filter in filters:
                 self.apply_filter(filter)
-        if resize: 
-            self.resize(resize, resize_type)
+        if resize_width or resize_height: 
+            self.resize( resize_width, resize_height, resize_type)
         if output_format:
-            if output_format not in VALID_IMAGE_EXTENSIONS:
-                raise ValueError("Image conversion format not supported.")
-            else:
-                self.extension = output_format
+            self.extension = output_format
         
         base_name = os.path.splitext(os.path.basename(self.file_path))[0]
         edited_name = f"{base_name}_edited.{self.extension}"
         output_path = os.path.join('outputs', 'image_converted_outputs', edited_name)
         self.img.save(output_path)
-
         return output_path
+    
+    def validate_params(self, **kwargs):
+        output_format = kwargs.get('output_format')
+        resize_width = kwargs.get('resize_width')
+        resize_height = kwargs.get('resize_height')
+        resize_type = kwargs.get('resize_type')
+        angle = kwargs.get('angle')
+        filters = kwargs.get('filters')
+        validators = []
+        if output_format:  
+            validators.append(FormatValidator(output_format, IMAGE_OPTIONS['extension'], "Output format") )
+        if resize_width:
+            validators.append(IntValidator(resize_width, True, "Resize width") )
+        if resize_height:
+            validators.append(IntValidator(resize_height, True, "Resize height") )
+        if resize_type:
+            validators.append(FormatValidator(resize_type, IMAGE_OPTIONS['resize_type'], "Resize type") )
+        if angle:        
+            validators.append(IntValidator(angle, True, "Angle"))
+            validators.append(RangeValidator(angle, 0, 360, "Angle") )
+        if filters:
+            for filter in filters:
+                validators.append(FormatValidator(filter, IMAGE_OPTIONS['filter'], "Filter") )
+        
+        validator_context = ValidatorContext(validators, ImageConvertError)
+        validator_context.run_validations()
+    
