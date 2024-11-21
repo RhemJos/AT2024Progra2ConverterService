@@ -37,5 +37,10 @@ app.register_blueprint(download_blueprint, url_prefix='/api')
 app.register_blueprint(login_blueprint, url_prefix='/api')
 
 
+@app.route("/")
+def home():
+    return "Welcome to the API Converter Service!"
+
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=9090, debug=True)
