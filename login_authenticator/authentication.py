@@ -27,6 +27,7 @@ class LoginService(AuthenticationService):
         if not validate_user(username, password):  
             return jsonify({'message': 'Invalid credentials!'}), 401
         # Generate a JWT token
+        print(username, password)
         token = jwt.encode({
             'username': username,
             'password': password,
