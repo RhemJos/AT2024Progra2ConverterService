@@ -1,5 +1,5 @@
 #
-# @extractor.py Copyright (c) 2021 Jalasoft.
+# @Validator.py Copyright (c) 2021 Jalasoft.
 # 2643 Av Melchor Perez de Olguin, Colquiri Sud, Cochabamba, Bolivia.
 # <add direccion de jala la paz>
 # All rights reserved. #
@@ -12,10 +12,17 @@
 from abc import ABC, abstractmethod
 
 
-class Extractor(ABC):
-    def __init__(self, file_path):
-        self.file_path = file_path
-    
+class Validator(ABC):
+    def __init__(self, param_name):
+        self.error_class = Exception()
+        self.param_name = param_name
+        
     @abstractmethod
-    def extract(self):
-        ''' Implement extraction method '''
+    def validate(self):
+        pass
+
+    def set_error_class(self, error_class):
+        self.error_class = error_class
+
+        
+

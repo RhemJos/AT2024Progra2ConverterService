@@ -13,7 +13,7 @@
 from flask import Blueprint, request, jsonify
 from converters.video_to_video.video_to_video import VideoToVideoConverter
 from converters.video_to_images.video_to_images import VideoToImagesConverter
-from validators.VideoValidator import VideoValidator
+from exceptions.video_convert_exception import VideoConvertError
 from helpers.endpoints_helper import save_file, get_or_save, update
 from helpers.compressor import FolderCompressor
 import os
@@ -35,7 +35,6 @@ def video_to_images():
         return jsonify({"error": f"Failed to save file to DB: {str(e)}"})
 
     if file_in_db and file.output_path:
-        os.remove(video_path)
         zip_url = request.host_url + '/api/download-frames/' + file.checksum + '.zip'
         return jsonify({
             "message": "Video already exists in Database.",
@@ -44,7 +43,10 @@ def video_to_images():
         })
 
     converter = VideoToImagesConverter(file.file_path)
-    converter.convert(fps=1)
+    try:
+        converter.convert(fps=1)
+    except VideoConvertError as e:
+        return jsonify({"error": e.get_message()}), e.get_status_code()
 
     filename = os.path.splitext(os.path.basename(file.file_path))[0]
     frames_folder = os.path.join('outputs', 'video_to_frames_outputs', filename).replace("\\", "/")
@@ -68,7 +70,7 @@ def video_to_images():
 def video_to_video():
     try:  # Save file using "save_file"
         video_path = save_file(request, 'file', 'video_converted_outputs',
-                               valid_formats=["mp4", "mov", "avi", "mkv", "flv", "webm", "ogg", "wmv"])
+                                valid_formats=["mp4", "mov", "avi", "mkv", "flv", "webm", "ogg", "wmv"])
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
     fps = request.form.get('fps')
@@ -76,10 +78,7 @@ def video_to_video():
     vcodec = request.form.get('vcodec')
     acodec = request.form.get('acodec')
     audio_channels = request.form.get('audio_channels')
-    # Parameter validation
-    validation_errors = VideoValidator.validate(output_format, vcodec, acodec, fps, audio_channels)
-    if validation_errors:
-        return jsonify({"error": validation_errors}), 400
+
     # Save or retrieve from DB
     try:
         file_in_db, file = get_or_save(video_path)
@@ -88,13 +87,16 @@ def video_to_video():
 
     # Video conversion
     converter = VideoToVideoConverter(file.file_path)
-    converter.convert(
-        output_format=output_format,
-        fps=fps,
-        video_codec=vcodec,
-        audio_codec=acodec,
-        audio_channels=audio_channels
-    )
+    try:
+        converter.convert(
+            output_format=output_format,
+            fps=fps,
+            video_codec=vcodec,
+            audio_codec=acodec,
+            audio_channels=audio_channels
+        )
+    except VideoConvertError as e:
+        return jsonify({"error": e.get_message()}), e.get_status_code()
 
     filename = os.path.splitext(os.path.basename(file.file_path))[0]
     video_path_converted = os.path.join('outputs', 'video_converted_outputs', f"{filename}.{output_format}")

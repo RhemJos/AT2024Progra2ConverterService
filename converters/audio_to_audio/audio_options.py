@@ -1,4 +1,14 @@
-
+#
+# @audio_options.py Copyright (c) 2021 Jalasoft.
+# 2643 Av Melchor Perez de Olguin, Colquiri Sud, Cochabamba, Bolivia.
+# <add direccion de jala la paz>
+# All rights reserved. #
+# This software is the confidential and proprietary information of
+# Jalasoft, ("Confidential Information"). You shall not
+# disclose such Confidential Information and shall use it only in
+# accordance with the terms of the license agreement you entered into
+# with Jalasoft.
+#
 class AudioOptions:
     def __init__(self):
         pass
@@ -19,12 +29,8 @@ class AudioOptions:
             options['map'] = f"0:a:{kwargs['language_channel']}"
         if 'speed' in kwargs:
             speed = float(kwargs['speed'])
-            if 0.5 <= speed <= 2.0:
-                if 'af' in options:
-                    options['af'] += f",atempo={speed}"
-                else:
-                    options['af'] = f"atempo={speed}"
+            if 'af' in options:
+                options['af'] += f",atempo={speed}"
             else:
-                print("La velocidad debe estar entre 0.5x y 2.0x")
-                return None
+                options['af'] = f"atempo={speed}"
         return options
