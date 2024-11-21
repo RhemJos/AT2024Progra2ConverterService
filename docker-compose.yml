@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   api-converter:
@@ -6,9 +6,9 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./:/app
       # - ./uploads:/app/uploads
       # - ./outputs:/app/outputs
+      - ./:/app
     environment:
       - FLASK_ENV=development
       - DB_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-db:5432/${POSTGRES_DB}
@@ -28,7 +28,7 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL","pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
