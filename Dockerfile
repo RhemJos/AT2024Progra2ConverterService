@@ -23,7 +23,7 @@ RUN apt-get update && \
 COPY . .
 
 # Descarga y configura ExifTool
-ADD https://exiftool.org/Image-ExifTool-13.03.tar.gz /app/converters/extractor/bin/exifTool
+ADD https://exiftool.org/Image-ExifTool-13.03.tar.gz /app/converters/extractor/bin/exifTool/
 RUN cd /app/converters/extractor/bin/exifTool/ && \
     tar -xf Image-ExifTool-13.03.tar.gz && \
     mv Image-ExifTool-13.03 exifToolPerl && \
