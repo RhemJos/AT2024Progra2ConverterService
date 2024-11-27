@@ -17,11 +17,7 @@ from exceptions.video_convert_exception import VideoConvertError
 from helpers.endpoints_helper import save_file, get_or_save, update
 from helpers.compressor import FolderCompressor
 import os
-from login_authenticator.ValidUsers import validate_user
-from dotenv import load_dotenv
-import jwt
-import os
-load_dotenv()
+
 
 video_blueprint = Blueprint('video_routes', __name__)
 
@@ -30,37 +26,6 @@ video_blueprint = Blueprint('video_routes', __name__)
 @video_blueprint.route('/video-to-images', methods=['POST'])
 def video_to_images():
 
-    try:
-        # Obtain the token from the header authorization
-        token = request.headers.get('Authorization')
-
-        if not token:
-            raise ValueError("Authorization header missing")
-
-        # Remove ¨Bearer¨ from JWT if exists
-        if token.startswith("Bearer "):
-            token = token[7:]
-        secret_key = os.getenv("JWT_SECRET_KEY")
-        # Decode JWT
-        try:
-            decoded_token = jwt.decode(token, secret_key, algorithms=["HS256"])
-        except jwt.ExpiredSignatureError:
-            raise ValueError("Token has expired")
-        except jwt.InvalidTokenError:
-            raise ValueError("Invalid token")
-
-        # Validate user and password from the JWT payload
-        username = decoded_token.get("username")
-        password = decoded_token.get("password")
-        print(username, password)
-        if not username or not password:
-            raise ValueError("Username or password missing in token")
-
-        if not validate_user(username, password):
-            raise ValueError("Invalid username or password")
-
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 401
     try:
         video_path = save_file(request, 'file', 'video_to_frames_outputs')
     except ValueError as e:
