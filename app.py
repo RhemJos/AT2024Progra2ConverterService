@@ -22,7 +22,8 @@ from routes.login_routes import login_blueprint
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DB_URL')
-
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///file_paths.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
 with app.app_context():
@@ -34,6 +35,11 @@ app.register_blueprint(image_blueprint, url_prefix='/api')
 app.register_blueprint(video_blueprint, url_prefix='/api')
 app.register_blueprint(download_blueprint, url_prefix='/api')
 app.register_blueprint(login_blueprint, url_prefix='/api')
+
+
+@app.route("/")
+def home():
+    return "Welcome to the API Converter Service!"
 
 
 if __name__ == "__main__":

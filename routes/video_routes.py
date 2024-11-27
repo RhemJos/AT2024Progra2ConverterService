@@ -107,7 +107,7 @@ def video_to_images():
 def video_to_video():
     try:  # Save file using "save_file"
         video_path = save_file(request, 'file', 'video_converted_outputs',
-                               valid_formats=["mp4", "mov", "avi", "mkv", "flv", "webm", "ogg", "wmv"])
+                                valid_formats=["mp4", "mov", "avi", "mkv", "flv", "webm", "ogg", "wmv"])
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
     fps = request.form.get('fps')
