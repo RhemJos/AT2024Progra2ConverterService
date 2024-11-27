@@ -1,13 +1,11 @@
-version: "3.8"
+version: '3.8'
 
 services:
   api-converter:
     build: .
     ports:
-      - "9090:9090"
+      - ${LOCAL_PORT}:9090
     volumes:
-      # - ./uploads:/app/uploads
-      # - ./outputs:/app/outputs
       - ./:/app
     environment:
       - FLASK_ENV=development
@@ -15,6 +13,8 @@ services:
     depends_on:
       postgres-db:
         condition: service_healthy
+    networks:
+      - my-network
 
   postgres-db:
     image: postgres:15.3
@@ -32,6 +32,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - my-network
 
 volumes:
   postgres_data:
+
+networks:
+  my-network:
+    external: true

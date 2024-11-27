@@ -17,7 +17,7 @@ class CommandExecutor:
             return subprocess.run(command, shell=True, check=True, 
                                   encoding='utf-8', capture_output=True).stdout
         except subprocess.CalledProcessError as e:
-            raise CmdExecutionError(f"Command {command} execution failed: {e.stderr.decode()}", 500)
+            raise CmdExecutionError(f"Command {command} execution failed: {e.stderr}", 500)
         
 class Formatter:
     # Formats a string containing key:value pairs into a dictionary
