@@ -94,6 +94,10 @@ To view all the packages and dependencies needed to run this project, check the 
 ```bash
 pip install -r requirements.txt
 ```
+Git LFS must also be installed with the following command
+```bash
+git lfs install
+```
 
 # Folders and Files explanation 
 
